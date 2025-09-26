@@ -2,10 +2,10 @@
 using namespace std;
 class Node{
 	public:
-		int Data;
+		int data;
 		Node *Next;
 		Node(){
-			Data = 0;
+			data = 0;
 			Next = NULL;
 		}
 };
@@ -18,7 +18,7 @@ class List{
 		}
 		void AddList(int d){
 			Node *temp = new Node();
-			temp->Data = d;
+			temp->data = d;
 			if(First == NULL){
 				First = temp;
 				Last = temp;
@@ -27,22 +27,23 @@ class List{
 				Last = temp;
 			}
 		}
-		void ShowData(){
-			Node *temp = new Node();
-			temp = First;
+		void show(){
 			if(First == NULL){
-				cout<<"List is Empty"<<endl;
+				cout<<"List is Empty:"<<endl;
 				return;
 			}
+			Node *temp = new Node();
+			temp = First;
 			while(temp!=NULL){
-				cout<<temp->Data<<"\t";
-			    temp = temp->Next;
+				cout<<temp->data<<"\t";
+				temp = temp->Next;
 			}
 		}
 };
+
 int main(){
 	List mylist;
-	mylist.AddList(45);
 	mylist.AddList(15);
-	mylist.ShowData();
+	mylist.AddList(45);
+	mylist.show();
 }
