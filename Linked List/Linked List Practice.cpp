@@ -85,10 +85,11 @@ int main(){
 	mylist.Additem(22);
 	mylist.Additem(32);
 	mylist.Additem(42);
+	cout<<"List is : ";
+	mylist.Show();
+	cout<<endl;
+	mylist.Delete(90);
 	mylist.Delete(12);
-	mylist.Delete(42);
-	mylist.Delete(32);
-	cout<<"\n<------------------->\n\n";
-	cout<<"Updated Linked List"<<endl;
+	cout<<"\nThe Updated List is :";
 	mylist.Show();
 }
