@@ -15,8 +15,9 @@ class List{
 		}		
 	}
 	void check(){
+		count = 0;
 		for(int i = 0; i<3; i++){
-			if(marks[i] <= Pass){
+			if(marks[i] < Pass){
 				count++;
 			}
 		}
@@ -36,18 +37,25 @@ int main(){
 	string name;
 	int roll;
 	int marks[3];
-	for(int i = 0; i<25; i++){
+	List *mylist[5];
+	for(int i = 0; i<5; i++){
 		cout<<"Enter "<<i+1<<" Student Data: "<<endl;
 		cout<<"Please Enter Name: "<<endl;
 		cin>>name;
 		cout<<"Please Enter Roll no: "<<endl;
 		cin>>roll;
-		for(int i = 0; i<3; i++){
-			cout<<"Enter the Data of "<<i+1<<" Student"<<endl;
-			cin>>marks[i];
+		for(int j = 0; j<3; j++){
+			cout<<"Enter the Marks of "<<j+1<<" Student"<<endl;
+			cin>>marks[j];
 		}
-		List mylist(name,roll,marks);
-		mylist.check();
+		mylist[i] = new List(name,roll,marks);
 		cout<<"\n\n";
 	}
+    for(int i = 0; i<5; i++){
+        mylist[i]->check();
+    }
+
+    for(int i = 0; i<5; i++){
+        delete mylist[i];
+    }
 }
