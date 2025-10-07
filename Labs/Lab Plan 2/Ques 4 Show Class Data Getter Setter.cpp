@@ -13,14 +13,28 @@ class Person{
 		return name;
 	}
 	void setage(int a){
-		age = a;
+		while(1){
+			if(a < 0 || a > 130){
+				cout<<"Please Enter age b/w 1 to 130"<<endl;
+				cin>>a;
+			}else{
+				age = a;
+				break;
+			}
+		}
 	}
 	int Getage(){
 		return age;
 	}
 	void setcnic(string c){
-		if(c[13]){
-			break;
+		while(1){
+			if(c.size() > 13){
+				cout<<"Please Enter Less than 13"<<endl;
+				cin>>c;
+			}else{
+				CniC = c;
+				break;
+			}
 		}
 	}
 	string Getcnic(){
@@ -38,8 +52,8 @@ class Person{
 int main(){
 	Person P1,P2,P3;
 	P1.setName("Ali");
-	P1.setage(12);
-	P1.setcnic("123123");
+	P1.setage(12234);
+	P1.setcnic("123123237846234");
 	P2.setName("Alian");
 	P2.setage(13);
 	P2.setcnic("323123");

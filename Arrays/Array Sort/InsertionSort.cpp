@@ -3,19 +3,17 @@ using namespace std;
 void InsertionSort(int Arr[],int num){
 	for(int i = 1; i<num; i++){
 		int temp = Arr[i];
-		int j;
-//		while(j>=0 && Arr[j] > temp){
-//			Arr[j+1] = Arr[j];
-//			j--;
-//		}
-//		Arr[j+1] = temp;
-		for(j = i-1; j>=0; j--){
-			if(Arr[j] > temp){
-				Arr[j+1] = Arr[j];
-			}
+		int j = i-1;
+		while(j>=0 && Arr[j] > temp){
+			Arr[j+1] = Arr[j];
+			j--;
 		}
 		Arr[j+1] = temp;
-		
+//		int j;
+//		for(int j = i-1; j>=0 && Arr[j] > temp; j--){
+//			Arr[j+1] = Arr[j];
+//		}
+//		Arr[j+1] = temp;
 	}
 }
 int main(){
