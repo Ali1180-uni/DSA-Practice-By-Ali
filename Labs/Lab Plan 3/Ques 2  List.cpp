@@ -13,7 +13,7 @@ class List {
 	private:
 		Node *First,*Last;
 	public:
-		List(){
+		List() {
 			First = nullptr;
 			Last = nullptr;
 		}
@@ -82,27 +82,20 @@ class List {
 			Node *Curr = new Node();
 			Node *temp = new Node();
 			Curr = First;
-			while(Curr != nullptr && Curr->data != num) {
+			temp->data = num1;
+			while(Curr != nullptr) {
+				if(Curr->data == num) {
+					temp->Next = Curr->Next;
+					Curr->Next = temp;
+					if(Curr == Last) {
+						Last = temp;
+					}
+					cout<<"\nNode Added Between"<<endl;
+					return;
+				}
 				Curr = Curr->Next;
 			}
-			if(Curr->data != num) {
-				cout<<"\nThis Number is Not Present in this List"<<endl;
-				return;
-			}
-			if(Curr == Last) {
-				temp->data = num1;
-				Last->Next = temp;
-				Last = temp;
-				Last->Next = nullptr;
-				cout<<"\nData is Added at the Last of List"<<endl;
-				return;
-			}
-			if(Curr->data == num) {
-				temp->data = num1;
-				temp->Next = Curr->Next;
-				Curr->Next = temp;
-				cout<<"\nNode Added Between"<<endl;
-				return;
-			}
+			cout<<"\nThis Number is Not Present in this List"<<endl;
+			delete Curr,temp;
 		}
 };
