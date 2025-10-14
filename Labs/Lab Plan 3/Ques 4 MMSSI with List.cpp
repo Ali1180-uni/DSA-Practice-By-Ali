@@ -167,14 +167,16 @@ int main() {
 	mylist.Add(14);
 	mylist.Add(5);
 	mylist.Add(2);
-	mylist.Add(14);
+	mylist.Add(45);
 	mylist.Show();
+	mylist.Search(2);
 	mylist.MinMax();
 	mylist.Sort();
 	mylist.Show();
+	mylist.Addbtw(69);
+	mylist.Show();
 	mylist.Addbtw(23);
 	mylist.Show();
-	mylist.Search(2);
 	mylist.Swap(14,99);
 	mylist.Show();
 }
