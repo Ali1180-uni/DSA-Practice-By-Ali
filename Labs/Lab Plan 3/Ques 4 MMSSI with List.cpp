@@ -142,9 +142,9 @@ class List {
 			}
 			Node *Curr = new Node();
 			Curr = First;
-			int temp,dimy;
 			while(Curr != nullptr){
 				Node *Prev = new Node();
+				Prev = Curr->Next;
 				while(Prev != nullptr){
 					if(Curr->Data == num1){
 						if(Prev->Data == num2){
@@ -172,9 +172,9 @@ int main() {
 	mylist.MinMax();
 	mylist.Sort();
 	mylist.Show();
-//	mylist.Addbtw(23);
-//	mylist.Show();
-//	mylist.Search(2);
-	mylist.Swap(12,14);
+	mylist.Addbtw(23);
+	mylist.Show();
+	mylist.Search(2);
+	mylist.Swap(14,99);
 	mylist.Show();
 }
