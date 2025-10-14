@@ -72,18 +72,92 @@ class List {
 				Curr = First;
 				while(Curr != nullptr) {
 					Node *Prev = Curr->Next;
-					while(Prev != nullptr){
-						if(Curr->Data > Prev->Data){
+					while(Prev != nullptr) {
+						if(Curr->Data > Prev->Data) {
 							int temp = Curr->Data;
 							Curr->Data = Prev->Data;
 							Prev->Data = temp;
 						}
 						Prev = Prev->Next;
-					}	
+					}
 					Curr = Curr->Next;
 				}
 			}
 			cout<<"\nAfter Sort";
+		}
+		void Addbtw(int num) {
+			if(First == nullptr) {
+				cout<<"The List is Empty"<<endl;
+				return;
+			}
+			Node *temp = new Node();
+			temp->Data = num;
+			cout<<"\nPlease Enter the Number after which you want to Add new Number:"<<endl;
+			int newNum;
+			cin>>newNum;
+			Node *Curr = new Node();
+			Curr = First;
+			while(Curr != nullptr) {
+				if(Curr->Data == newNum) {
+					temp->Next = Curr->Next;
+					Curr->Next = temp;
+					if(Curr == Last) {
+						Last = temp;
+					}
+					cout<<"\nNode Added between"<<endl;
+					return;
+				}
+				Curr = Curr->Next;
+			}
+			cout<<"Item not Found in List"<<endl;
+			return;
+		}
+		void Search(int d){
+			int count = 0;
+			int index = 0;
+			Node *temp = new Node();
+			Node *Curr = new Node();
+			temp->Data = d;
+			Curr = First;
+			while(Curr != nullptr){
+				if(Curr->Data == d){
+					count++;
+				}
+				index++;
+				Curr = Curr->Next;
+			}
+			if(index == 0){
+				cout<<"Number is not in List"<<endl;
+				return;
+			}else{
+				cout<<"\nYour Number is "<<count<<" times in this List"<<endl;
+				cout<<"Its Position is "<<index-1<<" in List"<<endl;
+			}
+			delete temp,Curr;
+		}
+		void Swap(int num1,int num2){
+			if(First == nullptr){
+				cout<<"List is Empty"<<endl;
+				return;
+			}
+			Node *Curr = new Node();
+			Curr = First;
+			int temp,dimy;
+			while(Curr != nullptr){
+				Node *Prev = new Node();
+				while(Prev != nullptr){
+					if(Curr->Data == num1){
+						if(Prev->Data == num2){
+							int temp = Curr->Data;
+							Curr->Data = Prev->Data;
+							Prev->Data = temp;
+						}
+					}
+					Prev = Prev->Next;
+				}
+				Curr = Curr->Next;
+			}
+			cout<<"\nAfter Swap"<<endl;
 		}
 };
 int main() {
@@ -93,8 +167,14 @@ int main() {
 	mylist.Add(14);
 	mylist.Add(5);
 	mylist.Add(2);
+	mylist.Add(14);
 	mylist.Show();
 	mylist.MinMax();
 	mylist.Sort();
+	mylist.Show();
+//	mylist.Addbtw(23);
+//	mylist.Show();
+//	mylist.Search(2);
+	mylist.Swap(12,14);
 	mylist.Show();
 }
