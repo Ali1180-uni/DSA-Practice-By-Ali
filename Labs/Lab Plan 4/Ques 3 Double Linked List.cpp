@@ -89,3 +89,21 @@ class List{
 			}
 		}
 };
+
+int main(){
+	List mylist;
+	mylist.insert(12);
+	mylist.insert(32);
+	mylist.insert(42);
+	mylist.insert(52);
+	mylist.insert(62);
+	cout<<"Forward List is:"<<endl;
+	mylist.showfrwd();
+	cout<<"\nBackward List is:"<<endl;
+	mylist.showbrwd();
+	mylist.del(62);
+	cout<<"Forward List is:"<<endl;
+	mylist.showfrwd();
+	cout<<"\nBackward List is:"<<endl;
+	mylist.showbrwd();
+}
