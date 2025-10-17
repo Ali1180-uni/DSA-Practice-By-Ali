@@ -58,11 +58,13 @@ class DblList{
 			}
 			if(First->Data == d){
 				First = First->Next;
-				cout<<"First Node is Deleted"<<endl;
+				cout<<"\nFirst Node is Deleted"<<endl;
 				    if(First == nullptr){
 				    	Last = nullptr;
 					    cout<<"This is the First & Last Node"<<endl;
-				    }
+				    }else{
+				    	First->Prev = nullptr;
+					}
 				return;
 			}
 			Node *Curr = new Node();
@@ -96,7 +98,11 @@ int main(){
 	mydbllist.Add(22);
 	mydbllist.Add(32);
 	mydbllist.Add(42);
-	mydbllist.Delete(32);
+	cout<<"The Forward List is: ";
+	mydbllist.FwrdShow();
+	cout<<"\nThe Backward List is: ";
+	mydbllist.BkwrdShow();
+	mydbllist.Delete(12);
 	cout<<"The Forward List is: ";
 	mydbllist.FwrdShow();
 	cout<<"\nThe Backward List is: ";
