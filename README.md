@@ -47,14 +47,16 @@ DSA/
 │       ├── InsertionSort.cpp          # Insertion Sort Implementation
 │       └── SelectionSort.cpp          # Selection Sort Implementation
 │
-├── Linked List/
+├── Linked List/                       # 7 implementations
 │   ├── Linked List Basic.cpp          # Singly Linked List basics
 │   ├── Linked List Practice.cpp       # Advanced singly linked list
 │   ├── Double Linked List.cpp         # Doubly Linked List
 │   ├── Circular Linked List.cpp       # Circular Linked List
-│   └── Circular Linked List JospehProblem.cpp  # Josephus Problem Solution
+│   ├── Circular Linked List JospehProblem.cpp  # Josephus Problem Solution
+│   ├── DIff Josphus.cpp               # Alternative Josephus approach
+│   └── hello.cpp                      # Practice file
 │
-├── Stack/
+├── Stack/                             # 5 implementations
 │   ├── Basic of Stack.cpp             # Stack fundamentals
 │   ├── Stack with Linked List.cpp     # Stack using Linked List
 │   ├── Decimal to Binary Conversion.cpp  # Base conversion using stack
@@ -65,20 +67,31 @@ DSA/
 │   ├── Pointers & Heaps.cpp           # Dynamic memory allocation
 │   └── Pointers with 2D Array.cpp     # 2D array manipulation
 │
-├── Practice/
+├── Practice/                          # 10 practice files
 │   ├── 2D Arrays.cpp                  # 2D array operations
+│   ├── 2D Array With Pointers.cpp     # Pointer-based 2D arrays
 │   ├── Full Linked List.cpp           # Complete linked list implementation
 │   ├── Josephus Problem.cpp           # Classic Josephus problem
-│   └── Star Pattern.cpp               # Pattern printing algorithms
+│   ├── Circlular List.cpp             # Circular list practice
+│   ├── ArraySquare.cpp                # Array manipulation
+│   ├── Star Pattern.cpp               # Pattern printing algorithms
+│   ├── leet.cpp                       # LeetCode practice
+│   ├── leet Same Digit Problem.cpp    # LeetCode digit problem
+│   └── leet String Practice.cpp       # LeetCode string problems
 │
 ├── Labs/
-│   ├── Lab Plan 1/                    # First lab session (11 questions)
+│   ├── Lab Plan 1/                    # First lab session (12 questions)
 │   ├── Lab Plan 2/                    # Second lab session (15 questions)
-│   ├── Lab Plan 3/                    # Third lab session (Linked Lists)
-│   └── Lab Plan 4/                    # Fourth lab session (Double Linked Lists)
+│   ├── Lab Plan 3/                    # Third lab session (4 - Linked Lists)
+│   ├── Lab Plan 4/                    # Fourth lab session (4 - Double Linked Lists)
+│   └── Lab Plan 5/                    # Fifth lab session (6 - Stack Applications)
 │
 └── Quizes/
-    └── Quiz 1/                        # Quiz preparation materials
+    └── Quiz 1/                        # Quiz preparation (6 files)
+        ├── All 3 Sorts.cpp
+        ├── Linked List All Practice.cpp
+        ├── Pointer with 2D array.cpp
+        └── Pointer with dynamic 2D array.cpp
 ```
 
 ---
@@ -129,13 +142,14 @@ DSA/
 
 ## 🧪 Lab Work
 
-### Lab Plan 1 - Basics (11 Questions)
+### Lab Plan 1 - Basics (12 Questions)
 Focus: Fundamentals, loops, recursion, strings
 - Swap numbers
 - Reverse arrays
 - Factorial (iterative & recursive)
 - String operations
 - Number guessing game
+- Table generation
 
 ### Lab Plan 2 - OOP & Pointers (15 Questions)
 Focus: Classes, pointers, arrays
@@ -157,6 +171,14 @@ Focus: Doubly Linked Lists & Circular Lists
 - Doubly Linked List with traversal
 - Circular Linked List
 - Josephus Problem variations
+
+### Lab Plan 5 - Stack Applications (6 Questions)
+Focus: Stack-based problem solving
+- Stack implementation
+- Balance checker (parentheses matching)
+- Decimal to binary conversion
+- Infix to Postfix conversion
+- Postfix evaluation
 
 ---
 
@@ -200,89 +222,24 @@ g++ "Stack with Linked List.cpp" -o Stack_LL.exe
 
 ---
 
-## 🚀 Future Topics
-
-### 📅 Upcoming (To Be Implemented)
-
-#### Queue
-- [ ] Queue using Arrays
-- [ ] Queue using Linked Lists
-- [ ] Circular Queue
-- [ ] Priority Queue
-- [ ] Deque (Double-ended Queue)
-
-#### Trees
-- [ ] Binary Tree
-- [ ] Binary Search Tree (BST)
-- [ ] Tree Traversals (Inorder, Preorder, Postorder)
-- [ ] AVL Tree
-- [ ] Heap (Min Heap & Max Heap)
-- [ ] B-Tree
-- [ ] Red-Black Tree
-
-#### Graphs
-- [ ] Graph Representation (Adjacency Matrix & List)
-- [ ] BFS (Breadth-First Search)
-- [ ] DFS (Depth-First Search)
-- [ ] Dijkstra's Algorithm
-- [ ] Kruskal's Algorithm
-- [ ] Prim's Algorithm
-- [ ] Topological Sort
-
-#### Hashing
-- [ ] Hash Tables
-- [ ] Hash Functions
-- [ ] Collision Handling (Chaining, Open Addressing)
-- [ ] Hash Map Implementation
-
-#### Advanced Sorting
-- [ ] Merge Sort
-- [ ] Quick Sort
-- [ ] Heap Sort
-- [ ] Radix Sort
-- [ ] Counting Sort
-
-#### Searching
-- [ ] Interpolation Search
-- [ ] Jump Search
-- [ ] Exponential Search
-
-#### Dynamic Programming
-- [ ] Fibonacci Series
-- [ ] Knapsack Problem
-- [ ] Longest Common Subsequence
-- [ ] Matrix Chain Multiplication
-- [ ] Edit Distance
-
-#### Greedy Algorithms
-- [ ] Activity Selection
-- [ ] Huffman Coding
-- [ ] Fractional Knapsack
-
-#### Backtracking
-- [ ] N-Queens Problem
-- [ ] Sudoku Solver
-- [ ] Rat in a Maze
-- [ ] Knight's Tour
-
----
-
 ## 📊 Progress Tracker
 
 | Topic | Files | Status | Completion |
 |-------|-------|--------|-----------|
-| Arrays | 5 | ✅ Complete | 100% |
+| Arrays | 4 | ✅ Complete | 100% |
 | Pointers | 2 | ✅ Complete | 100% |
-| Linked Lists | 6 | ✅ Complete | 100% |
+| Linked Lists | 7 | ✅ Complete | 100% |
 | Stack | 5 | ✅ Complete | 100% |
-| Queue | 0 | ⏳ Pending | 0% |
-| Trees | 0 | ⏳ Pending | 0% |
-| Graphs | 0 | ⏳ Pending | 0% |
-| Hashing | 0 | ⏳ Pending | 0% |
-| Advanced Sorting | 0 | ⏳ Pending | 0% |
-| Dynamic Programming | 0 | ⏳ Pending | 0% |
+| Practice Files | 10 | ✅ Complete | 100% |
+| Lab Plan 1 | 12 | ✅ Complete | 100% |
+| Lab Plan 2 | 15 | ✅ Complete | 100% |
+| Lab Plan 3 | 4 | ✅ Complete | 100% |
+| Lab Plan 4 | 4 | ✅ Complete | 100% |
+| Lab Plan 5 | 6 | ✅ Complete | 100% |
 
-**Overall Progress:** 4/10 Topics (40%)
+**Total Files:** 75+ C++ implementations  
+**Labs Completed:** 5/5 (41 lab questions)  
+**Overall Progress:** 10/16 Topics (62.5%)
 
 ---
 
