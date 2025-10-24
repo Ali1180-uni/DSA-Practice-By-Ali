@@ -1,4 +1,5 @@
 #include<iostream>
+#include<math.h>
 using namespace std;
 class Stack {
 	public:
@@ -22,6 +23,15 @@ class Stack {
 			}
 		}
 		void Push(char c) {
+			if(isFull() == false) {
+				top++;
+				arr[top] = c;
+			} else {
+				cout<<"Stack is Full"<<endl;
+				return;
+			}
+		}
+		void PushInt(int c) {
 			if(isFull() == false) {
 				top++;
 				arr[top] = c;
@@ -103,8 +113,39 @@ string conversion(string infix) {
 	}
 	return postfix;
 }
+int evaluate(string Postfix) {
+	Stack myStack;
+	for(int i = 0; i<Postfix.length(); i++) {
+		char c = Postfix[i];
+		if(c>= '0' && c<= '9') {  // Fixed: Changed || to &&
+			int d = c-'0';
+			myStack.PushInt(d);
+		} else {
+			int opt2 = myStack.Peak();  // Right operand (second)
+			myStack.Pop();
+			int opt1 = myStack.Peak();  // Left operand (first)
+			myStack.Pop();
+			if(c == '+') {
+				myStack.PushInt(opt1 + opt2);
+			}else if(c == '-'){
+				myStack.PushInt(opt1 - opt2);  // Now correct: left - right
+			}else if(c == '/'){
+				myStack.PushInt(opt1 / opt2);  // Now correct: left / right
+			}else if(c == '*'){
+				myStack.PushInt(opt1 * opt2);
+			}else if(c == '^'){
+				myStack.PushInt(pow(opt1,opt2));
+			}else{
+				cout<<"Invalid Operator"<<endl;
+			}
+		}
+	}
+	return myStack.Peak();
+}
 int main() {
-	string infix = "(A*B+C)+(K-O/P)";
+//	string infix = "(1*2+3)+(4-5/6)";
+//  string infix = "1+2-3+4";
 	string PostFix = conversion(infix);
-	cout<<"Output String is: "<<PostFix;
+	cout<<"Output String is: "<<PostFix<<endl;
+	cout<<"Solution of this Postfix is: "<<evaluate(PostFix);
 }
