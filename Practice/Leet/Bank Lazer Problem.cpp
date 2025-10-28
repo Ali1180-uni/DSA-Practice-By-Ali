@@ -19,7 +19,8 @@ int NumberOfBeams(vector<string>& bank) {
         return total;
 }
 int main() {
-	vector<string> arr = {"011001","000000","010100","001000"};
+//	vector<string> arr = {"011001","000000","010100","001000"};
+vector<string> arr = {"000","111","000"};
 	int num = NumberOfBeams(arr);
 	cout<<num;
 }
