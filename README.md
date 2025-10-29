@@ -222,6 +222,35 @@ g++ "Stack with Linked List.cpp" -o Stack_LL.exe
 
 ---
 
+## 🆕 Recent additions (most recent first)
+
+Here are the most recently added or modified C++ files in the repository (useful to keep track of recent practice work):
+
+- `Practice/Leet/next bit with same nums problem.cpp` — Leet/bit-manipulation practice
+- `Practice/Leet/Array Zero Problem.cpp` — Leet array zero transformation problem
+- `Practice/Leet/Bank Lazer Problem.cpp` — Leet-style practice
+- `Practice/Leet/Calculate Money Leet Practice.cpp` — money calculation practice
+- `Labs/Lab Plan 5/Ques 3 Balance Check.cpp` — parentheses/bracket balance checker
+- `Labs/Lab Plan 5/Ques 3 Decimal Convertion.cpp` — decimal to binary conversion using stack
+- `Labs/Lab Plan 5/Ques 3 Postfix Evaluation.cpp` — postfix expression evaluator
+- `Stack/Equation Solver with precedence.cpp` — infix/postfix evaluation (operator precedence)
+- `Labs/Lab Plan 5/Ques 3 Infix to Postfix.cpp` — infix-to-postfix converter
+- `Labs/Lab Plan 5/Ques 2 Stack Implement.cpp` — stack implementation for lab exercises
+- `Labs/Lab Plan 5/Ques 1 Stack.cpp` — basic stack implementation
+- `Practice/Leet/leet Same Digit Problem.cpp` — Leet digit problem practice
+- `Practice/Leet/leet String Practice.cpp` — Leet string practice problems
+- `Stack/Stack with Linked List.cpp` — stack implemented via linked list
+- `Stack/Decimal to Binary Conversion.cpp` — decimal-to-binary converter
+- `Stack/Prefix Precedence.cpp` — prefix expression handling / precedence
+- `Linked List/hello.cpp` — small linked-list practice file
+- `Practice/Josephus Problem.cpp` — Josephus problem implementation
+- `Linked List/DIff Josphus.cpp` — alternative Josephus approach
+- `Practice/Circlular List.cpp` — circular list practice
+
+If you'd like, I can link each entry to the file path, add one-line descriptions for any specific file, or move this to the top of the README.
+
+---
+
 ## 📊 Progress Tracker
 
 | Topic | Files | Status | Completion |
