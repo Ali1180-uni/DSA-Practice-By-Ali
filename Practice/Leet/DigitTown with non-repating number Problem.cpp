@@ -7,7 +7,7 @@ vector<int> getSneakyNumbers(vector<int>& nums) {
 	for (int i = 0; i < n; i++) {
 		for (int j = i + 1; j < n; j++) {
 			if (nums[i] == nums[j]) {
-				temp.push_back(nums[i]);
+				temp.push_back(nums[i]); // use push_back for vectors bcz initially size is zero
 				break;
 			}
 		}
