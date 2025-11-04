@@ -17,3 +17,5 @@ int main(){
 	}
 	cout<<num<<" is Present "<<count<<" Index in this Array"<<endl;
 }
+
+// Maximum Done
