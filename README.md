@@ -62,6 +62,10 @@ DSA/
 │   ├── Decimal to Binary Conversion.cpp  # Base conversion using stack
 │   ├── Equation Solver with precedence.cpp  # Infix evaluation
 │   └── Prefix Precedence.cpp          # Prefix expression handling
+
+├── Queue/                             # 2 implementations
+│   ├── Basic Queue with Array.cpp      # Queue using array
+│   └── Basic Queue with Linked List.cpp # Queue using linked list
 │
 ├── Pointers/
 │   ├── Pointers & Heaps.cpp           # Dynamic memory allocation
@@ -131,7 +135,11 @@ DSA/
 - [x] Expression Evaluation with Precedence
 - [x] Prefix Expression Handling
 
-#### 5. **Object-Oriented Programming**
+#### 5. **Queue**
+- [x] Basic Queue using Array
+- [x] Basic Queue using Linked List
+
+-#### 6. **Object-Oriented Programming**
 - [x] Classes and Objects
 - [x] Constructors and Destructors
 - [x] Encapsulation (Getters and Setters)
@@ -260,6 +268,7 @@ If you'd like, I can link each entry to the file path, add one-line descriptions
 | Linked Lists | 7 | ✅ Complete | 100% |
 | Stack | 5 | ✅ Complete | 100% |
 | Practice Files | 10 | ✅ Complete | 100% |
+| Queue | 2 | ✅ Complete | 100% |
 | Lab Plan 1 | 12 | ✅ Complete | 100% |
 | Lab Plan 2 | 15 | ✅ Complete | 100% |
 | Lab Plan 3 | 4 | ✅ Complete | 100% |
@@ -350,6 +359,6 @@ This repository is for educational purposes. Feel free to use the code for learn
 
 **⭐ If you find this repository helpful, please consider giving it a star! ⭐**
 
-Made with ❤️ by Ali | Last Updated: October 2025
+Made with ❤️ by Ali | Last Updated: November 6, 2025
 
 </div>
