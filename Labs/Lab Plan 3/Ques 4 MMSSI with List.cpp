@@ -177,6 +177,6 @@ int main() {
 	mylist.Show();
 	mylist.Addbtw(23);
 	mylist.Show();
-	mylist.Swap(14,99);
+	mylist.Swap(2,45);
 	mylist.Show();
 }
