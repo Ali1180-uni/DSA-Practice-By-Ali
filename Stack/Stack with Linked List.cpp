@@ -11,16 +11,15 @@ class Node {
 };
 class Stack {
 	public:
-		Node *First, *Last;
+		Node *top;
 		int count,limit;
 		Stack() {
-			First = nullptr;
-			Last = nullptr;
+			top = nullptr;
 			count = 0;
 			limit = 10;
 		}
 		bool isEmpty() {
-			if(First == nullptr) {
+			if(top == nullptr) {
 				return true;
 			} else {
 				return false;
@@ -40,42 +39,42 @@ class Stack {
 			}
 			Node *temp = new Node();
 			temp->data = num;
+			temp->Next = top;
+			top = temp;
 			count ++;
-			if(isEmpty() == true) {
-				First = Last = temp;
-			} else {
-				Last->Next = temp;
-				Last = temp;
-			}
 		}
 		void pop() {
 			if(isEmpty() == true) {
 				cout<<"Stack is Empty"<<endl;
 				return;
-			} else if(First == Last) {
-				delete First;
-				First = Last =nullptr;
-				count--;
-				cout<<"deleted";
-			} else {
-				Node *Curr = First;
-				while(Curr->Next != Last) {
-					Curr = Curr->Next;
-				}
-				delete Last;
-				Last = Curr;
-				Last->Next = nullptr;
-				count--;
-				return;
-
 			}
+			Node* temp = top;
+			top = top->Next;
+			delete temp;
+			count--;
+//			 else if(First == Last) {
+//				delete First;
+//				First = Last =nullptr;
+//				count--;
+//				cout<<"deleted";
+//			} else {
+//				Node *Curr = First;
+//				while(Curr->Next != Last) {
+//					Curr = Curr->Next;
+//				}
+//				delete Last;
+//				Last = Curr;
+//				Last->Next = nullptr;
+//				count--;
+//				return;
+
 		}
 		int Peak() {
 			if(isEmpty() == true) {
 				cout<<"Stack is Empty"<<endl;
 				return 0;
 			} else {
-				return count;
+				return top->data;
 			}
 		}
 		void show() {
@@ -84,7 +83,7 @@ class Stack {
 				return;
 			} else {
 				Node *Curr = new Node();
-				Curr = First;
+				Curr = top;
 				while(Curr != nullptr) {
 					cout<<Curr->data<<" ";
 					Curr = Curr->Next;
@@ -106,5 +105,5 @@ int main() {
 	mystack.pop();
 	int num2 = mystack.Peak();
 	mystack.show();
-	cout<<"\nSize is: "<<num1<<" Different from "<<num2<<endl;
+	cout<<"\nSize is: "<<num2<<" Different from "<<num1<<endl;
 }

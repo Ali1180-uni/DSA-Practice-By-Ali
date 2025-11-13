@@ -107,12 +107,14 @@ int main() {
 	string infix = "A*B+C";
 	string revInfix =  "";
 	string NewRev = "";
-	for(int i = infix.length()-1; i >=0; i--){
-		revInfix = revInfix + infix[i];
-	}
-	string PostFix = conversion(revInfix);
-	for(int i = PostFix.length()-1; i >=0; i--){
-		NewRev = NewRev + PostFix[i];
-	}
-	cout<<"Output String is: "<<NewRev;
+//	for(int i = infix.length()-1; i >=0; i--){
+//		revInfix = revInfix + infix[i];
+//	}
+//	string PostFix = conversion(revInfix);
+string PostFix = conversion(infix);
+//	for(int i = PostFix.length()-1; i >=0; i--){
+//		NewRev = NewRev + PostFix[i];
+//	}
+//	cout<<"Output String is: "<<NewRev;
+cout<<"Output String is: "<<PostFix;
 }
