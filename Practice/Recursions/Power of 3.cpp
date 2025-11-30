@@ -12,4 +12,4 @@ public:
     }
 };
 
-thats the code which pass 21040 cases
+//thats the code which passes 21040 cases
