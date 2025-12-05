@@ -39,6 +39,69 @@ class binarySearchTree {
 				}
 			}
 		}
+		void Delete(int d) {
+			if(root == nullptr) {
+				cout<<"\nTree is Empty"<<endl;
+				return;
+			}
+			Node *curr = root;
+			Node *parent;
+			while(curr != nullptr && curr->data != d) {
+				parent  = curr;
+				if(d>curr->data) {
+					curr = curr->right;
+				} else {
+					curr = curr->left;
+				}
+			}
+			if(curr== nullptr){
+				cout<<"\nData Not Found"<<endl;
+				return;
+			}else if(curr->left == nullptr && curr->right == nullptr){
+				if(curr == root){
+					root = nullptr;
+					return;
+				}else if(curr == parent->left){
+					parent->left = nullptr; 
+				}else{
+					parent->right = nullptr;
+				}
+			}else if(curr->right == nullptr){
+				if(curr == root){
+					root = curr->left;
+					return;
+				}else if(parent->left == curr){
+					parent->left = curr->left;
+				}else{
+					parent->right = curr->left;
+				}
+				delete curr;
+			}else if(curr->left == nullptr){
+				if(curr == root){
+					root = curr->right;
+					return;
+				}else if(parent->right == curr){
+					parent->right = curr->right;
+				}else{
+					parent->left = curr->right;
+				}
+				delete curr;
+			}else{
+				Node *subsucc = curr;
+				Node *succ = curr->right; // if we want to check in right side
+				while(succ->left != nullptr){ // and the leftmost value in right side is smallest bcz we take small in right side and large in left side
+					subsucc = succ;
+					succ = succ->left;
+				}
+				curr->data = succ->data;
+				if(subsucc->right == succ){
+					subsucc->right = succ->right;
+				}else{
+					subsucc->left = succ->right;
+				}
+				delete succ;
+			}
+		}
 		void InOrder(Node *temp) {
 			if(temp == nullptr) {
 				return;
@@ -71,6 +134,8 @@ int main() {
 	tree1.insert(16);
 	tree1.insert(20);
 	tree1.insert(18);
+	
+	tree1.Delete(14);
 	cout<<"\n--------In Order--------\n";
 	tree1.InOrder(tree1.root);
 	cout<<"\n--------Pre Order--------\n";
