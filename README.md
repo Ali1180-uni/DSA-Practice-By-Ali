@@ -67,6 +67,12 @@ DSA/
 │   ├── Basic Queue with Array.cpp      # Queue using array
 │   └── Basic Queue with Linked List.cpp # Queue using linked list
 │
+├── Trees/                             # 5 implementations
+│   ├── Binary Search Tree.cpp          # BST with Insert, Delete, Traversals
+│   ├── In Order Tree.cpp               # In-order traversal
+│   ├── Pre Order Tree.cpp              # Pre-order traversal
+│   └── Post Order Tree.cpp             # Post-order traversal
+│
 ├── Pointers/
 │   ├── Pointers & Heaps.cpp           # Dynamic memory allocation
 │   └── Pointers with 2D Array.cpp     # 2D array manipulation
@@ -88,7 +94,8 @@ DSA/
 │   ├── Lab Plan 2/                    # Second lab session (15 questions)
 │   ├── Lab Plan 3/                    # Third lab session (4 - Linked Lists)
 │   ├── Lab Plan 4/                    # Fourth lab session (4 - Double Linked Lists)
-│   └── Lab Plan 5/                    # Fifth lab session (6 - Stack Applications)
+│   ├── Lab Plan 5/                    # Fifth lab session (6 - Stack Applications)
+│   └── Lab Plan 7/                    # Seventh lab session (8 - Recursion)
 │
 └── Quizes/
     └── Quiz 1/                        # Quiz preparation (6 files)
@@ -139,7 +146,13 @@ DSA/
 - [x] Basic Queue using Array
 - [x] Basic Queue using Linked List
 
--#### 6. **Object-Oriented Programming**
+#### 6. **Trees**
+- [x] Binary Search Tree (Insert, Delete)
+- [x] In-order Traversal
+- [x] Pre-order Traversal
+- [x] Post-order Traversal
+
+#### 7. **Object-Oriented Programming**
 - [x] Classes and Objects
 - [x] Constructors and Destructors
 - [x] Encapsulation (Getters and Setters)
@@ -187,6 +200,13 @@ Focus: Stack-based problem solving
 - Decimal to binary conversion
 - Infix to Postfix conversion
 - Postfix evaluation
+
+### Lab Plan 7 - Recursion (8 Questions)
+Focus: Recursive functions and problem solving
+- Factorial (function & recursion)
+- Power/Exponent (function & recursion)
+- Fibonacci series (function & recursion)
+- Sum of n numbers (function & recursion)
 
 ---
 
@@ -269,15 +289,17 @@ If you'd like, I can link each entry to the file path, add one-line descriptions
 | Stack | 5 | ✅ Complete | 100% |
 | Practice Files | 10 | ✅ Complete | 100% |
 | Queue | 2 | ✅ Complete | 100% |
+| Trees | 5 | ✅ Complete | 100% |
 | Lab Plan 1 | 12 | ✅ Complete | 100% |
 | Lab Plan 2 | 15 | ✅ Complete | 100% |
 | Lab Plan 3 | 4 | ✅ Complete | 100% |
 | Lab Plan 4 | 4 | ✅ Complete | 100% |
 | Lab Plan 5 | 6 | ✅ Complete | 100% |
+| Lab Plan 7 | 8 | ✅ Complete | 100% |
 
-**Total Files:** 75+ C++ implementations  
-**Labs Completed:** 5/5 (41 lab questions)  
-**Overall Progress:** 10/16 Topics (62.5%)
+**Total Files:** 90+ C++ implementations  
+**Labs Completed:** 6/7 (49 lab questions)  
+**Overall Progress:** 12/16 Topics (75%)
 
 ---
 
@@ -359,6 +381,6 @@ This repository is for educational purposes. Feel free to use the code for learn
 
 **⭐ If you find this repository helpful, please consider giving it a star! ⭐**
 
-Made with ❤️ by Ali | Last Updated: November 6, 2025
+Made with ❤️ by Ali | Last Updated: December 5, 2025
 
 </div>
