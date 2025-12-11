@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVL Tree Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Smooth transitions for SVG elements */
+        circle, line, text {
+            transition: all 0.5s ease-in-out;
+        }
+        /* Custom scrollbar for logs */
+        .log-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        .log-panel::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+        .log-panel::-webkit-scrollbar-thumb {
+            background: #475569; 
+            border-radius: 4px;
+        }
+        .log-panel::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen font-sans text-slate-800">
+
+    <div class="max-w-6xl mx-auto p-4 md:p-8 space-y-6">
+        
+        <!-- Header -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">AVL Tree Visualizer</h1>
+            <p class="text-slate-600">
+                A lightweight, vanilla JS visualization of a self-balancing AVL Tree. 
+                Insert numbers to watch the tree rotate and maintain balance automatically.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Sidebar: Controls & Logs -->
+            <div class="lg:col-span-1 space-y-6">
+                
+                <!-- Controls -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                        Controls
+                    </h2>
+                    
+                    <form id="insertForm" class="flex gap-2 mb-4">
+                        <input 
+                            type="number" 
+                            id="numberInput" 
+                            placeholder="Enter number..." 
+                            class="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            required
+                        >
+                        <button 
+                            type="submit" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                        >
+                            Insert
+                        </button>
+                    </form>
+
+                    <!-- History Controls (NEW) -->
+                    <div class="mb-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">History</span>
+                            <span id="stepDisplay" class="text-xs text-slate-600 font-mono">Step 0/0</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="btnPrev" class="flex-1 bg-white hover:bg-slate-50 text-slate-700 px-2 py-1.5 rounded border border-slate-300 text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                &larr; Prev
+                            </button>
+                            <button id="btnNext" class="flex-1 bg-white hover:bg-slate-50 text-slate-700 px-2 py-1.5 rounded border border-slate-300 text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                Next &rarr;
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button 
+                            id="btnLoadExample" 
+                            class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors border border-slate-300"
+                        >
+                            Load Example
+                        </button>
+                        <button 
+                            id="btnReset" 
+                            class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors border border-red-200 flex items-center justify-center gap-2"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 12"/><path d="M3 3v9h9"/></svg>
+                            Reset
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="font-semibold mb-2 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                        Legend
+                    </h3>
+                    <ul class="space-y-2 text-sm text-slate-600">
+                        <li class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-blue-500 border border-blue-600"></span> Node Value
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-emerald-600 font-bold text-xs">BF:0</span> Balance Factor
+                        </li>
+                        <li class="text-xs text-slate-500 mt-2">
+                            BF = Height(Left) - Height(Right).<br>
+                            Tree rotates if BF is outside [-1, 1].
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Logs -->
+                <div class="bg-slate-900 text-slate-300 p-4 rounded-xl shadow-sm h-64 flex flex-col font-mono text-sm">
+                    <div class="mb-2 text-slate-400 uppercase text-xs tracking-wider border-b border-slate-700 pb-1">Operations Log</div>
+                    <div id="logContainer" class="log-panel flex-1 overflow-y-auto space-y-1">
+                        <span class="opacity-50 italic">Waiting for input...</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Visualization Area -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col min-h-[500px]">
+                <h2 class="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-100 pb-2">Tree Visualization</h2>
+                <div class="flex-1 w-full overflow-auto flex items-center justify-center bg-slate-50 rounded-lg border border-slate-200 relative" id="svgContainer">
+                    <div id="emptyMessage" class="text-gray-400 italic">Tree is empty. Add a number to start.</div>
+                    <svg id="treeSvg" width="800" height="500" viewBox="0 0 800 500" class="hidden w-full h-full">
+                        <!-- Content will be injected by JS -->
+                    </svg>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- AVL Tree Logic ---
+
+        class Node {
+            constructor(value) {
+                this.value = value;
+                this.left = null;
+                this.right = null;
+                this.height = 1;
+            }
+        }
+
+        let root = null;
+        
+        // History State
+        let history = [];
+        let historyIndex = -1;
+
+        // Utility functions
+        const getHeight = (node) => (node ? node.height : 0);
+        const getBalance = (node) => (node ? getHeight(node.left) - getHeight(node.right) : 0);
+        const updateHeight = (node) => {
+            node.height = 1 + Math.max(getHeight(node.left), getHeight(node.right));
+        };
+
+        // Rotations
+        const rightRotate = (y) => {
+            const x = y.left;
+            const T2 = x.right;
+
+            log(`Performing Right Rotation on Node ${y.value}`, 'action');
+
+            x.right = y;
+            y.left = T2;
+
+            updateHeight(y);
+            updateHeight(x);
+
+            return x;
+        };
+
+        const leftRotate = (x) => {
+            const y = x.right;
+            const T2 = y.left;
+
+            log(`Performing Left Rotation on Node ${x.value}`, 'action');
+
+            y.left = x;
+            x.right = T2;
+
+            updateHeight(x);
+            updateHeight(y);
+
+            return y;
+        };
+
+        const insertNode = (node, value) => {
+            // 1. Standard BST Insert
+            if (!node) {
+                log(`Inserted new node: ${value}`);
+                return new Node(value);
+            }
+
+            if (value < node.value) {
+                node.left = insertNode(node.left, value);
+            } else if (value > node.value) {
+                node.right = insertNode(node.right, value);
+            } else {
+                log(`Duplicate value ${value} ignored.`, 'warn');
+                return node;
+            }
+
+            // 2. Update Height
+            updateHeight(node);
+
+            // 3. Get Balance
+            const balance = getBalance(node);
+
+            // 4. Check Unbalanced Cases
+
+            // Left Left
+            if (balance > 1 && value < node.left.value) {
+                log(`Node ${node.value} unbalanced (BF: ${balance}). Case: Left Left.`);
+                return rightRotate(node);
+            }
+
+            // Right Right
+            if (balance < -1 && value > node.right.value) {
+                log(`Node ${node.value} unbalanced (BF: ${balance}). Case: Right Right.`);
+                return leftRotate(node);
+            }
+
+            // Left Right
+            if (balance > 1 && value > node.left.value) {
+                log(`Node ${node.value} unbalanced (BF: ${balance}). Case: Left Right.`);
+                node.left = leftRotate(node.left);
+                return rightRotate(node);
+            }
+
+            // Right Left
+            if (balance < -1 && value < node.right.value) {
+                log(`Node ${node.value} unbalanced (BF: ${balance}). Case: Right Left.`);
+                node.right = rightRotate(node.right);
+                return leftRotate(node);
+            }
+
+            return node;
+        };
+
+
+        // --- UI & Drawing Logic ---
+
+        const logContainer = document.getElementById('logContainer');
+        const svgElement = document.getElementById('treeSvg');
+        const emptyMessage = document.getElementById('emptyMessage');
+        const numberInput = document.getElementById('numberInput');
+        
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+        const stepDisplay = document.getElementById('stepDisplay');
+
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            
+            if (message.startsWith('---')) {
+                div.className = "text-blue-400 font-bold mt-2 pt-1 border-t border-slate-800";
+            } else if (type === 'action') {
+                div.className = "text-yellow-400 pl-2 border-l-2 border-yellow-600";
+                message = "> " + message;
+            } else if (type === 'warn') {
+                div.className = "text-orange-400 italic";
+            } else {
+                div.className = "pl-2 border-l-2 border-slate-700";
+                message = "> " + message;
+            }
+            
+            div.textContent = message;
+            logContainer.appendChild(div);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function clearLogs() {
+            logContainer.innerHTML = '';
+        }
+
+        // --- History Logic (NEW) ---
+
+        function saveState() {
+            // Remove future history if we are in the middle of the timeline
+            if (historyIndex < history.length - 1) {
+                history = history.slice(0, historyIndex + 1);
+            }
+            
+            // Deep clone the current root
+            // JSON serialization is safe here because our Nodes are simple data objects
+            const currentState = JSON.parse(JSON.stringify(root));
+            history.push(currentState);
+            historyIndex++;
+            updateHistoryUI();
+        }
+
+        function updateHistoryUI() {
+            stepDisplay.textContent = `Step ${historyIndex + 1}/${history.length}`;
+            btnPrev.disabled = historyIndex <= 0;
+            btnNext.disabled = historyIndex >= history.length - 1;
+        }
+
+        function loadState(index) {
+            if (index < 0 || index >= history.length) return;
+            
+            historyIndex = index;
+            // Deep clone back to root to prevent mutations affecting history
+            root = JSON.parse(JSON.stringify(history[index]));
+            
+            drawTree();
+            updateHistoryUI();
+            
+            // Optional: visual feedback
+            stepDisplay.classList.add('text-blue-600', 'font-bold');
+            setTimeout(() => stepDisplay.classList.remove('text-blue-600', 'font-bold'), 300);
+        }
+
+        // --- Drawing ---
+
+        // Recursive function to get node coordinates
+        function traverseAndMap(node, x, y, offset, depth, map = []) {
+            if (!node) return map;
+
+            map.push({
+                value: node.value,
+                x: x,
+                y: y,
+                balance: getBalance(node),
+                left: node.left,
+                right: node.right,
+                offset: offset
+            });
+
+            if (node.left) traverseAndMap(node.left, x - offset, y + 70, offset / 2, depth + 1, map);
+            if (node.right) traverseAndMap(node.right, x + offset, y + 70, offset / 2, depth + 1, map);
+
+            return map;
+        }
+
+        function drawTree() {
+            // Clear SVG content
+            svgElement.innerHTML = '';
+
+            if (!root) {
+                svgElement.classList.add('hidden');
+                emptyMessage.classList.remove('hidden');
+                return;
+            }
+
+            svgElement.classList.remove('hidden');
+            emptyMessage.classList.add('hidden');
+
+            // Calculate node positions
+            const startX = 400;
+            const startY = 40;
+            const initialOffset = 180;
+            const nodes = traverseAndMap(root, startX, startY, initialOffset, 0);
+
+            // 1. Draw Lines (Edges) first
+            nodes.forEach(node => {
+                const childOffset = node.offset / 2;
+                
+                if (node.left) {
+                    // We need to find the left child's coordinates manually or calculate them
+                    // Based on our traversal logic: Left X = Current X - Offset
+                    const childX = node.x - node.offset;
+                    const childY = node.y + 70;
+                    
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", node.x);
+                    line.setAttribute("y1", node.y);
+                    line.setAttribute("x2", childX);
+                    line.setAttribute("y2", childY);
+                    line.setAttribute("stroke", "#cbd5e1");
+                    line.setAttribute("stroke-width", "2");
+                    svgElement.appendChild(line);
+                }
+
+                if (node.right) {
+                    const childX = node.x + node.offset;
+                    const childY = node.y + 70;
+                    
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", node.x);
+                    line.setAttribute("y1", node.y);
+                    line.setAttribute("x2", childX);
+                    line.setAttribute("y2", childY);
+                    line.setAttribute("stroke", "#cbd5e1");
+                    line.setAttribute("stroke-width", "2");
+                    svgElement.appendChild(line);
+                }
+            });
+
+            // 2. Draw Nodes
+            nodes.forEach(node => {
+                const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+                // Circle
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", node.x);
+                circle.setAttribute("cy", node.y);
+                circle.setAttribute("r", "20");
+                circle.setAttribute("fill", "white");
+                
+                // Highlight unbalanced nodes (visual flare)
+                if (Math.abs(node.balance) > 1) {
+                    circle.setAttribute("stroke", "#ef4444"); // Red
+                } else {
+                    circle.setAttribute("stroke", "#3b82f6"); // Blue
+                }
+                
+                circle.setAttribute("stroke-width", "3");
+                group.appendChild(circle);
+
+                // Value Text
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", node.x);
+                text.setAttribute("y", node.y);
+                text.setAttribute("dy", "5");
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("font-size", "14");
+                text.setAttribute("font-weight", "bold");
+                text.setAttribute("fill", "#1e293b");
+                text.textContent = node.value;
+                group.appendChild(text);
+
+                // Balance Factor Text
+                const bfText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                bfText.setAttribute("x", node.x + 25);
+                bfText.setAttribute("y", node.y);
+                bfText.setAttribute("dy", "5");
+                bfText.setAttribute("font-size", "10");
+                
+                if (node.balance === 0) bfText.setAttribute("fill", "#10b981");
+                else bfText.setAttribute("fill", "#64748b");
+                
+                bfText.textContent = `BF:${node.balance}`;
+                group.appendChild(bfText);
+
+                svgElement.appendChild(group);
+            });
+        }
+
+
+        // --- Event Listeners ---
+
+        document.getElementById('insertForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const val = parseInt(numberInput.value);
+            
+            if (isNaN(val)) return;
+
+            log(`--- Inserting ${val} ---`);
+            root = insertNode(root, val);
+            
+            saveState(); // Save to history
+            drawTree();
+            
+            numberInput.value = '';
+            numberInput.focus();
+        });
+
+        document.getElementById('btnReset').addEventListener('click', () => {
+            root = null;
+            clearLogs();
+            
+            // Reset History
+            history = [];
+            historyIndex = -1;
+            saveState(); // Save empty state as step 1 (or 0)
+            
+            log('Tree cleared.');
+            drawTree();
+            numberInput.focus();
+        });
+
+        document.getElementById('btnLoadExample').addEventListener('click', () => {
+            root = null;
+            clearLogs();
+            
+            // Reset History for new example
+            history = [];
+            historyIndex = -1;
+            saveState(); // Initial empty state
+
+            log('Loading Example sequence: 10, 20, 30, 40, 50, 25');
+            
+            const sequence = [10, 20, 30, 40, 50, 25];
+            
+            sequence.forEach(val => {
+                log(`--- Inserting ${val} ---`);
+                root = insertNode(root, val);
+                saveState(); // Save state after each insertion
+            });
+            
+            drawTree();
+            numberInput.focus();
+        });
+        
+        // History Buttons
+        btnPrev.addEventListener('click', () => {
+            loadState(historyIndex - 1);
+        });
+
+        btnNext.addEventListener('click', () => {
+            loadState(historyIndex + 1);
+        });
+
+        // Initialize
+        saveState(); // Save initial empty state
+        drawTree();
+
+    </script>
+</body>
+</html>
