@@ -54,7 +54,7 @@ class binarySearchTree {
 					curr = curr->left;
 				}
 			}
-			if(curr== nullptr){
+			if(curr == nullptr){
 				cout<<"\nData Not Found"<<endl;
 				return;
 			}else if(curr->left == nullptr && curr->right == nullptr){

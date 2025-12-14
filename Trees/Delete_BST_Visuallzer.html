@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BST Deletion Master</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Prism for syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        /* --- Scrollbars --- */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e1e1e; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        /* --- Code Editor Styling --- */
+        .code-container {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .code-line {
+            display: flex; /* Flex to align arrow and text */
+            align-items: center;
+            padding: 0 12px;
+            border-left: 3px solid transparent;
+            opacity: 0.6;
+            transition: all 0.15s ease-out;
+            min-height: 22px; /* Consistent line height */
+        }
+
+        /* Active Line Highlighting */
+        .code-line.active {
+            background-color: #2d374850; /* Semi-transparent dark blue-gray */
+            border-left-color: #fbbf24; /* Amber border */
+            opacity: 1;
+            color: #fbbf24;
+            font-weight: 700;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* The Animated Arrow */
+        .code-line.active::before {
+            content: "➔";
+            display: inline-block;
+            margin-right: 8px;
+            color: #fbbf24;
+            animation: bounce-right 1s infinite;
+        }
+
+        @keyframes bounce-right {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(4px); }
+        }
+
+        /* --- Tree Visualization --- */
+        svg { width: 100%; height: 100%; }
+        svg text { user-select: none; font-family: 'Inter', sans-serif; }
+        
+        /* Smooth transitions for SVG elements */
+        circle { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        line { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        rect { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        g text { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* Flash animation for value copying */
+        @keyframes valueFlash {
+            0% { fill: #fff; font-size: 14px; }
+            50% { fill: #fbbf24; font-size: 20px; font-weight: 900; }
+            100% { fill: #fff; font-size: 14px; }
+        }
+        .value-change { animation: valueFlash 0.6s ease-out; }
+
+        /* Grid Background Pattern */
+        .bg-grid {
+            background-color: #111827;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-200 h-screen w-screen overflow-hidden flex flex-col font-sans">
+
+    <!-- 1. Header -->
+    <header class="h-14 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-6 shadow-md z-30 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 p-1.5 rounded text-white shadow-lg shadow-blue-900/50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+            </div>
+            <h1 class="font-bold text-lg tracking-wide text-gray-100">BST <span class="text-blue-500">Visualizer</span></h1>
+        </div>
+        
+        <!-- Scenario Buttons -->
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider mr-2 hidden md:block">Presets:</span>
+            <button onclick="loadScenario('leaf')" class="px-3 py-1.5 text-xs font-medium bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded transition-colors">Case 1 (Leaf)</button>
+            <button onclick="loadScenario('oneChild')" class="px-3 py-1.5 text-xs font-medium bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded transition-colors">Case 2 (1 Child)</button>
+            <button onclick="loadScenario('twoChildren')" class="px-3 py-1.5 text-xs font-medium bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded transition-colors">Case 3 (2 Children)</button>
+            <button onclick="loadScenario('complex')" class="px-3 py-1.5 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/50 rounded transition-colors">Big Tree</button>
+        </div>
+    </header>
+
+    <!-- 2. Main Workspace -->
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- A. Left Sidebar: Controls -->
+        <aside class="w-72 bg-gray-900 border-r border-gray-800 flex flex-col z-20 shadow-xl shrink-0">
+            <div class="p-5 space-y-6 overflow-y-auto">
+                
+                <!-- Input Group -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Insert Node</label>
+                        <div class="flex rounded-md shadow-sm">
+                            <input type="number" id="insertInput" placeholder="Value" class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md bg-gray-800 border border-gray-700 text-sm text-white focus:ring-1 focus:ring-green-500 focus:border-green-500 outline-none transition">
+                            <button onclick="insertNodeUI()" class="inline-flex items-center px-4 py-2 border border-l-0 border-green-700 rounded-r-md bg-green-700 hover:bg-green-600 text-sm font-bold text-white transition">Add</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Delete Node</label>
+                        <div class="flex rounded-md shadow-sm">
+                            <input type="number" id="deleteInput" placeholder="Value" class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md bg-gray-800 border border-gray-700 text-sm text-white focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none transition">
+                            <button onclick="startDelete()" class="inline-flex items-center px-4 py-2 border border-l-0 border-red-700 rounded-r-md bg-red-700 hover:bg-red-600 text-sm font-bold text-white transition">Del</button>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-gray-800">
+
+                <!-- Playback Controls -->
+                <div>
+                    <div class="flex justify-between items-end mb-2">
+                        <label class="block text-xs font-bold text-gray-500 uppercase">Playback</label>
+                        <span id="stepCounter" class="text-xs font-mono text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded">Idle</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="btnPrev" onclick="prevStep()" disabled class="flex justify-center items-center gap-2 px-4 py-2 bg-gray-800 border border-gray-700 hover:bg-gray-750 text-gray-300 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                            <span>◄</span> Back
+                        </button>
+                        <button id="btnNext" onclick="nextStep()" disabled class="flex justify-center items-center gap-2 px-4 py-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md text-sm font-medium shadow-lg shadow-blue-900/30 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed transition-all">
+                            Next <span>►</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="bg-gray-800/50 rounded-lg p-3 border border-gray-800 mt-auto">
+                    <h3 class="text-[10px] font-bold text-gray-500 uppercase mb-2 tracking-wider">Legend</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full bg-gray-800 border-2 border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>
+                            <span class="text-xs text-gray-300">Target Node (curr)</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full bg-gray-800 border-2 border-blue-500"></div>
+                            <span class="text-xs text-gray-300">Parent Node</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full bg-gray-800 border-2 border-green-500"></div>
+                            <span class="text-xs text-gray-300">Successor (succ)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-3 text-center border-t border-gray-800">
+                <p class="text-[10px] text-gray-600">Visualizer v2.1 • C++ Logic</p>
+            </div>
+        </aside>
+
+        <!-- B. Center: Visualization & Terminal -->
+        <main class="flex-1 flex flex-col min-w-0 relative">
+            
+            <!-- Visualization Canvas -->
+            <div id="svgContainer" class="flex-1 bg-grid relative overflow-auto cursor-move">
+                <svg id="treeSvg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet">
+                    <!-- Tree elements injected here -->
+                </svg>
+            </div>
+
+            <!-- Terminal Panel -->
+            <div class="h-48 bg-[#0d1117] border-t border-gray-800 flex flex-col shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.3)] z-10">
+                <div class="px-4 py-1.5 bg-gray-800/50 border-b border-gray-800 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-green-500"></span> Console Output
+                    </span>
+                    <button onclick="document.getElementById('terminalContent').innerHTML = ''" class="text-[10px] text-gray-500 hover:text-white transition">Clear</button>
+                </div>
+                <div id="terminalContent" class="flex-1 p-3 overflow-y-auto font-mono text-xs text-gray-300 space-y-1">
+                    <div class="text-gray-500">bst-visualizer:~$ <span class="text-green-500">system_ready</span></div>
+                    <div class="text-gray-400">Welcome. Select a scenario or insert nodes to begin.</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- C. Right Sidebar: Code -->
+        <aside class="w-[480px] bg-[#1e1e1e] border-l border-gray-800 flex flex-col shrink-0 z-20 hidden xl:flex shadow-xl">
+            <div class="px-4 py-2 bg-[#252526] border-b border-gray-800 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                    <span class="text-xs font-bold text-gray-300">bst_delete.cpp</span>
+                </div>
+                <span class="text-[10px] bg-gray-700 text-gray-300 px-1.5 py-0.5 rounded">Read-Only</span>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto relative bg-[#1e1e1e]">
+<pre class="code-container m-0 p-4 text-gray-400"><code id="codeBlock">
+<div id="line-1" class="code-line">void Delete(int d) {</div>
+<div id="line-2" class="code-line">    if(root == nullptr) {</div>
+<div id="line-3" class="code-line">        cout << "\nTree is Empty" << endl;</div>
+<div id="line-4" class="code-line">        return;</div>
+<div id="line-5" class="code-line">    }</div>
+<div id="line-6" class="code-line">    Node *curr = root;</div>
+<div id="line-7" class="code-line">    Node *parent = nullptr;</div>
+<div id="line-8" class="code-line"></div>
+<div id="line-9" class="code-line">    // --- SEARCH ---</div>
+<div id="line-10" class="code-line">    while(curr != nullptr && curr->data != d) {</div>
+<div id="line-11" class="code-line">        parent = curr;</div>
+<div id="line-12" class="code-line">        if(d > curr->data) curr = curr->right;</div>
+<div id="line-13" class="code-line">        else curr = curr->left;</div>
+<div id="line-14" class="code-line">    }</div>
+<div id="line-15" class="code-line"></div>
+<div id="line-16" class="code-line">    if(curr == nullptr) {</div>
+<div id="line-17" class="code-line">        cout << "\nData Not Found" << endl;</div>
+<div id="line-18" class="code-line">        return;</div>
+<div id="line-19" class="code-line">    }</div>
+<div id="line-20" class="code-line"></div>
+<div id="line-21" class="code-line">    // --- CASE 1: LEAF NODE ---</div>
+<div id="line-22" class="code-line">    else if(curr->left == nullptr && curr->right == nullptr) {</div>
+<div id="line-23" class="code-line">        if(curr == root) root = nullptr;</div>
+<div id="line-24" class="code-line">        else if(curr == parent->left) parent->left = nullptr;</div>
+<div id="line-25" class="code-line">        else parent->right = nullptr;</div>
+<div id="line-26" class="code-line">        delete curr;</div>
+<div id="line-27" class="code-line">    }</div>
+<div id="line-28" class="code-line"></div>
+<div id="line-29" class="code-line">    // --- CASE 2: ONE CHILD (Right Only) ---</div>
+<div id="line-30" class="code-line">    else if(curr->left == nullptr) {</div>
+<div id="line-31" class="code-line">        if(curr == root) root = curr->right;</div>
+<div id="line-32" class="code-line">        else if(parent->right == curr) parent->right = curr->right;</div>
+<div id="line-33" class="code-line">        else parent->left = curr->right;</div>
+<div id="line-34" class="code-line">        delete curr;</div>
+<div id="line-35" class="code-line">    }</div>
+<div id="line-36" class="code-line"></div>
+<div id="line-37" class="code-line">    // --- CASE 2: ONE CHILD (Left Only) ---</div>
+<div id="line-38" class="code-line">    else if(curr->right == nullptr) {</div>
+<div id="line-39" class="code-line">        if(curr == root) root = curr->left;</div>
+<div id="line-40" class="code-line">        else if(parent->left == curr) parent->left = curr->left;</div>
+<div id="line-41" class="code-line">        else parent->right = curr->left;</div>
+<div id="line-42" class="code-line">        delete curr;</div>
+<div id="line-43" class="code-line">    }</div>
+<div id="line-44" class="code-line"></div>
+<div id="line-45" class="code-line">    // --- CASE 3: TWO CHILDREN ---</div>
+<div id="line-46" class="code-line">    else {</div>
+<div id="line-47" class="code-line">        Node *subsucc = curr;</div>
+<div id="line-48" class="code-line">        Node *succ = curr->right;</div>
+<div id="line-49" class="code-line"></div>
+<div id="line-50" class="code-line">        // Find Inorder Successor</div>
+<div id="line-51" class="code-line">        while(succ->left != nullptr) {</div>
+<div id="line-52" class="code-line">            subsucc = succ;</div>
+<div id="line-53" class="code-line">            succ = succ->left;</div>
+<div id="line-54" class="code-line">        }</div>
+<div id="line-55" class="code-line"></div>
+<div id="line-56" class="code-line">        // Copy Data</div>
+<div id="line-57" class="code-line">        curr->data = succ->data;</div>
+<div id="line-58" class="code-line"></div>
+<div id="line-59" class="code-line">        // Fix Pointers</div>
+<div id="line-60" class="code-line">        if(subsucc->right == succ) subsucc->right = succ->right;</div>
+<div id="line-61" class="code-line">        else subsucc->left = succ->right;</div>
+<div id="line-62" class="code-line">        delete succ;</div>
+<div id="line-63" class="code-line">    }</div>
+<div id="line-64" class="code-line">}</div>
+</code></pre>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+    <script>
+        // --- DATA STRUCTURES ---
+        class Node {
+            constructor(value) {
+                this.value = value;
+                this.left = null;
+                this.right = null;
+                this.id = Math.random().toString(36).substr(2, 9); 
+            }
+        }
+
+        let root = null;
+        let steps = [];
+        let currentStepIndex = -1;
+
+        // --- TREE LOGIC ---
+        function insert(node, value) {
+            if (!node) return new Node(value);
+            if (value < node.value) node.left = insert(node.left, value);
+            else if (value > node.value) node.right = insert(node.right, value);
+            return node;
+        }
+
+        function insertNodeUI() {
+            const input = document.getElementById('insertInput');
+            const val = parseInt(input.value);
+            if (isNaN(val)) return;
+            
+            // Reset if inside simulation
+            if (steps.length > 0) resetSimulation();
+
+            root = insert(root, val);
+            drawTree(root);
+            logToTerminal(`> Inserted node ${val}.`, 'success');
+            input.value = '';
+        }
+
+        function loadScenario(type) {
+            resetSimulation();
+            root = null;
+            
+            if (type === 'leaf') {
+                [50, 20, 70].forEach(v => root = insert(root, v));
+                logToTerminal("Loaded 'Leaf Deletion' scenario. Try deleting 20.", 'info');
+                document.getElementById('deleteInput').value = 20;
+            } else if (type === 'oneChild') {
+                [50, 30, 20, 70, 80].forEach(v => root = insert(root, v));
+                logToTerminal("Loaded 'One Child' scenario. Try deleting 30.", 'info');
+                document.getElementById('deleteInput').value = 30;
+            } else if (type === 'twoChildren') {
+                [50, 20, 60, 55, 70, 52].forEach(v => root = insert(root, v));
+                logToTerminal("Loaded 'Two Children' scenario. Try deleting 50 (Root).", 'info');
+                document.getElementById('deleteInput').value = 50;
+            } else if (type === 'complex') {
+                [50, 30, 70, 20, 40, 60, 80, 10, 35, 45, 65, 90].forEach(v => root = insert(root, v));
+                logToTerminal("Loaded 'Big Tree'. Try deleting any node.", 'info');
+                document.getElementById('deleteInput').value = "";
+            }
+            drawTree(root);
+        }
+
+        function resetSimulation() {
+            steps = [];
+            currentStepIndex = -1;
+            document.getElementById('stepCounter').innerText = "Idle";
+            document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+            // Re-draw current tree without highlights
+            drawTree(root);
+        }
+
+        // --- VISUALIZATION ---
+        function traverseAndMap(node, x, y, offset, map = []) {
+            if (!node) return map;
+            map.push({
+                id: node.id,
+                value: node.value,
+                x: x,
+                y: y,
+                leftId: node.left ? node.left.id : null,
+                rightId: node.right ? node.right.id : null
+            });
+            const vGap = 70;
+            if (node.left) traverseAndMap(node.left, x - offset, y + vGap, offset / 1.7, map);
+            if (node.right) traverseAndMap(node.right, x + offset, y + vGap, offset / 1.7, map);
+            return map;
+        }
+
+        function drawTree(treeRoot, highlights = {}, valueUpdates = {}) {
+            const svg = document.getElementById('treeSvg');
+            svg.innerHTML = ''; 
+            
+            if (!treeRoot) return;
+
+            const startX = 500;
+            const startY = 50;
+            const initialOffset = 220;
+            const map = traverseAndMap(treeRoot, startX, startY, initialOffset);
+
+            // Draw Edges
+            map.forEach(n => {
+                if (n.leftId) {
+                    const child = map.find(c => c.id === n.leftId);
+                    if(child) createLine(svg, n.x, n.y, child.x, child.y);
+                }
+                if (n.rightId) {
+                    const child = map.find(c => c.id === n.rightId);
+                    if(child) createLine(svg, n.x, n.y, child.x, child.y);
+                }
+            });
+
+            // Draw Nodes
+            map.forEach(n => {
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                
+                // Outer Glow/Stroke based on role
+                let strokeColor = "#374151"; // default gray
+                let strokeWidth = "2";
+                
+                if (highlights.curr === n.id) { strokeColor = "#ef4444"; strokeWidth = "4"; }
+                else if (highlights.parent === n.id) { strokeColor = "#3b82f6"; strokeWidth = "4"; }
+                else if (highlights.succ === n.id) { strokeColor = "#22c55e"; strokeWidth = "4"; }
+                else if (highlights.subsucc === n.id) { strokeColor = "#a855f7"; strokeWidth = "4"; }
+
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", n.x);
+                circle.setAttribute("cy", n.y);
+                circle.setAttribute("r", 22);
+                circle.setAttribute("fill", "#111827");
+                circle.setAttribute("stroke", strokeColor);
+                circle.setAttribute("stroke-width", strokeWidth);
+                
+                // Add Drop Shadow
+                circle.setAttribute("filter", "drop-shadow(0 4px 3px rgb(0 0 0 / 0.3))");
+
+                g.appendChild(circle);
+
+                // Text
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", n.x);
+                text.setAttribute("y", n.y);
+                text.setAttribute("dy", 5);
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("fill", "#e5e7eb");
+                text.setAttribute("font-size", "14px");
+                text.setAttribute("font-weight", "bold");
+                text.textContent = n.value;
+
+                if (valueUpdates[n.id]) text.classList.add('value-change');
+                g.appendChild(text);
+
+                // Badges
+                if(highlights.curr === n.id) createBadge(g, n.x, n.y, "curr", "#ef4444");
+                else if(highlights.parent === n.id) createBadge(g, n.x, n.y, "parent", "#3b82f6");
+                else if(highlights.succ === n.id) createBadge(g, n.x, n.y, "succ", "#22c55e");
+
+                svg.appendChild(g);
+            });
+        }
+
+        function createLine(svg, x1, y1, x2, y2) {
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", x1);
+            line.setAttribute("y1", y1);
+            line.setAttribute("x2", x2);
+            line.setAttribute("y2", y2);
+            line.setAttribute("stroke", "#4b5563");
+            line.setAttribute("stroke-width", "2");
+            line.setAttribute("opacity", "0.5");
+            svg.appendChild(line);
+        }
+
+        function createBadge(group, x, y, text, color) {
+            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute("x", x + 18);
+            rect.setAttribute("y", y - 24);
+            rect.setAttribute("width", "50");
+            rect.setAttribute("height", "18");
+            rect.setAttribute("rx", "4");
+            rect.setAttribute("fill", color);
+            group.appendChild(rect);
+
+            const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            label.setAttribute("x", x + 43);
+            label.setAttribute("y", y - 11);
+            label.setAttribute("text-anchor", "middle");
+            label.setAttribute("fill", "white");
+            label.setAttribute("font-size", "11");
+            label.setAttribute("font-weight", "bold");
+            label.textContent = text;
+            group.appendChild(label);
+        }
+
+        // --- LOGIC SIMULATION ---
+        function deepClone(node) {
+            if (!node) return null;
+            const newNode = new Node(node.value);
+            newNode.id = node.id; 
+            newNode.left = deepClone(node.left);
+            newNode.right = deepClone(node.right);
+            return newNode;
+        }
+
+        function generateSteps(targetVal) {
+            steps = [];
+            let simRoot = deepClone(root);
+            
+            const addStep = (line, log, highlights = {}, valueUpdateId = null) => {
+                steps.push({ line, log, treeState: deepClone(simRoot), highlights, valueUpdateId });
+            };
+
+            addStep(1, `Delete(${targetVal}) started.`);
+
+            if (!simRoot) {
+                addStep(3, "Error: Tree is empty.");
+                return;
+            }
+
+            let curr = simRoot;
+            let parent = null;
+            addStep(6, "Initializing: curr = root.");
+
+            while (curr != null && curr.value !== targetVal) {
+                addStep(10, `Searching: curr(${curr.value}) != ${targetVal}.`, { curr: curr.id, parent: parent?.id });
+                parent = curr;
+                if (targetVal > curr.value) {
+                    addStep(12, `${targetVal} > ${curr.value} -> Go Right.`, { curr: curr.id, parent: parent.id });
+                    curr = curr.right;
+                } else {
+                    addStep(13, `${targetVal} < ${curr.value} -> Go Left.`, { curr: curr.id, parent: parent.id });
+                    curr = curr.left;
+                }
+            }
+
+            if (curr == null) {
+                addStep(17, "Not Found: Value not in tree.");
+                return;
+            }
+
+            addStep(10, `Found Target: ${targetVal}`, { curr: curr.id, parent: parent?.id });
+
+            // Case 1: Leaf
+            if (curr.left == null && curr.right == null) {
+                addStep(22, "Case 1: Node is a Leaf.", { curr: curr.id, parent: parent?.id });
+                if (curr === simRoot) simRoot = null;
+                else if (parent.left === curr) parent.left = null;
+                else parent.right = null;
+                addStep(26, "Deleted leaf node.", { parent: parent?.id });
+            }
+            // Case 2: One Child (Right)
+            else if (curr.left == null) {
+                addStep(30, "Case 2: One Child (Right).", { curr: curr.id, parent: parent?.id });
+                if (curr === simRoot) simRoot = curr.right;
+                else if (parent.right === curr) parent.right = curr.right;
+                else parent.left = curr.right;
+                addStep(34, "Bypassed node -> linked Right child.", { parent: parent?.id });
+            }
+            // Case 2: One Child (Left)
+            else if (curr.right == null) {
+                addStep(38, "Case 2: One Child (Left).", { curr: curr.id, parent: parent?.id });
+                if (curr === simRoot) simRoot = curr.left;
+                else if (parent.left === curr) parent.left = curr.left;
+                else parent.right = curr.left;
+                addStep(42, "Bypassed node -> linked Left child.", { parent: parent?.id });
+            }
+            // Case 3: Two Children
+            else {
+                addStep(46, "Case 3: Two Children.", { curr: curr.id, parent: parent?.id });
+                let subsucc = curr;
+                let succ = curr.right;
+                addStep(51, "Finding Successor (Smallest in Right Subtree).", { curr: curr.id, subsucc: subsucc.id, succ: succ.id });
+
+                while (succ.left != null) {
+                    addStep(52, "Successor loop: going left...", { curr: curr.id, subsucc: subsucc.id, succ: succ.id });
+                    subsucc = succ;
+                    succ = succ.left;
+                }
+                
+                addStep(57, `Found Successor: ${succ.value}. Copying data...`, { curr: curr.id, succ: succ.id }, curr.id);
+                curr.value = succ.value;
+
+                if (subsucc.right === succ) {
+                    addStep(60, "Successor is direct child. Re-linking.", { curr: curr.id, subsucc: subsucc.id });
+                    subsucc.right = succ.right;
+                } else {
+                    addStep(61, "Successor is deep left. Re-linking.", { curr: curr.id, subsucc: subsucc.id });
+                    subsucc.left = succ.right;
+                }
+                addStep(62, "Deleted physical successor node.", { curr: curr.id });
+            }
+        }
+
+        // --- CONTROL FLOW ---
+        function startDelete() {
+            const input = document.getElementById('deleteInput');
+            const val = parseInt(input.value);
+            
+            if (isNaN(val) || !root) {
+                logToTerminal("Error: Invalid input or empty tree.", 'error');
+                return;
+            }
+
+            generateSteps(val);
+            if(steps.length === 0) return;
+
+            currentStepIndex = -1;
+            document.getElementById('btnPrev').disabled = true;
+            document.getElementById('btnNext').disabled = false;
+            
+            nextStep();
+        }
+
+        function renderStep(index) {
+            if (index < 0 || index >= steps.length) return;
+            const step = steps[index];
+
+            // 1. Highlight Code
+            document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+            const lineEl = document.getElementById(`line-${step.line}`);
+            if (lineEl) {
+                lineEl.classList.add('active');
+                lineEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            // 2. Draw
+            drawTree(step.treeState, step.highlights, step.valueUpdateId ? {[step.valueUpdateId]: true} : {});
+
+            // 3. Log
+            logToTerminal(`Step ${index+1}: ${step.log}`);
+            document.getElementById('stepCounter').innerText = `${index + 1} / ${steps.length}`;
+
+            // 4. Buttons
+            document.getElementById('btnPrev').disabled = index === 0;
+            document.getElementById('btnNext').disabled = index === steps.length - 1;
+
+            if(index === steps.length - 1) {
+                root = step.treeState;
+                logToTerminal("Operation Complete.", 'success');
+            }
+        }
+
+        function nextStep() {
+            if (currentStepIndex < steps.length - 1) {
+                currentStepIndex++;
+                renderStep(currentStepIndex);
+            }
+        }
+
+        function prevStep() {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                renderStep(currentStepIndex);
+            }
+        }
+
+        function logToTerminal(msg, type = 'normal') {
+            const term = document.getElementById('terminalContent');
+            const div = document.createElement('div');
+            
+            let colorClass = 'text-gray-300';
+            if (type === 'error') colorClass = 'text-red-400';
+            if (type === 'success') colorClass = 'text-green-400 font-bold';
+            if (type === 'info') colorClass = 'text-blue-400';
+            
+            div.className = `${colorClass} border-l-2 border-transparent hover:bg-gray-800/50 pl-2 py-0.5 transition`;
+            if (type !== 'normal') div.style.borderColor = 'currentColor';
+            
+            div.innerText = msg;
+            term.appendChild(div);
+            term.scrollTop = term.scrollHeight;
+        }
+
+        // Init
+        window.onload = function() {
+            loadScenario('complex');
+        }
+    </script>
+</body>
+</html>
