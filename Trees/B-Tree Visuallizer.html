@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern B-Tree Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Smooth transitions */
+        rect, text, circle {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        path {
+            transition: d 0.5s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s;
+        }
+        
+        /* Custom scrollbar */
+        .log-panel::-webkit-scrollbar { width: 6px; }
+        .log-panel::-webkit-scrollbar-track { background: #0f172a; }
+        .log-panel::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        .log-panel::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Grid Background */
+        .bg-grid-pattern {
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans text-slate-800 flex flex-col">
+
+    <!-- Navbar -->
+    <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between shadow-sm z-10 sticky top-0">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                <span class="bg-indigo-600 text-white p-1.5 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                </span>
+                Ali's B-Tree Visualizer
+            </h1>
+            <p class="text-xs text-slate-500 mt-1">Interactive visualization of multi-way search trees</p>
+        </div>
+        
+        <!-- Quick Config -->
+        <div class="mt-4 md:mt-0 flex items-center gap-3 bg-slate-50 p-2 rounded-lg border border-slate-200">
+            <span class="text-xs font-bold text-slate-600 uppercase">Max Keys:</span>
+            <div class="flex items-center gap-1">
+                <button onclick="changeOrder(-1)" class="p-1 hover:bg-slate-200 rounded text-slate-600 font-bold">-</button>
+                <span id="currentOrderDisplay" class="font-mono font-bold text-indigo-600 w-6 text-center">3</span>
+                <button onclick="changeOrder(1)" class="p-1 hover:bg-slate-200 rounded text-slate-600 font-bold">+</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Sidebar Controls -->
+        <aside class="w-80 bg-white border-r border-slate-200 flex flex-col z-10 overflow-y-auto shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+            <div class="p-5 space-y-8">
+                
+                <!-- Insert Section -->
+                <div class="space-y-3">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Data Operations</label>
+                    <form id="insertForm" class="flex gap-2">
+                        <input 
+                            type="number" 
+                            id="numberInput" 
+                            placeholder="Value" 
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                            required
+                        >
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-md shadow-indigo-200">
+                            Add
+                        </button>
+                    </form>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="btnLoadExample" class="px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-xs font-semibold transition-colors">
+                            Load Demo
+                        </button>
+                        <button id="btnReset" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 rounded-lg text-xs font-semibold transition-colors">
+                            Reset Tree
+                        </button>
+                    </div>
+                </div>
+
+                <!-- History Section -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-end">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Time Travel</label>
+                        <span id="stepDisplay" class="text-[10px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-500">Step 0/0</span>
+                    </div>
+                    <div class="flex rounded-lg shadow-sm border border-slate-200 divide-x divide-slate-200 overflow-hidden">
+                        <button id="btnPrev" disabled class="flex-1 py-2 bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex justify-center items-center gap-1">
+                            <span>←</span> Back
+                        </button>
+                        <button id="btnNext" disabled class="flex-1 py-2 bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex justify-center items-center gap-1">
+                            Fwd <span>→</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Log Section -->
+                <div class="flex-1 flex flex-col min-h-[200px]">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Event Log</label>
+                    <div class="bg-slate-900 rounded-xl p-3 flex-1 flex flex-col border border-slate-800 shadow-inner overflow-hidden">
+                        <div id="logContainer" class="log-panel flex-1 overflow-y-auto space-y-2 font-mono text-xs">
+                            <div class="text-slate-500 italic">System ready...</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Footer Info -->
+            <div class="p-4 border-t border-slate-100 text-[10px] text-slate-400 text-center">
+                Visualizing split logic & median promotion
+            </div>
+        </aside>
+
+        <!-- Visualization Canvas -->
+        <main class="flex-1 relative bg-slate-50 overflow-hidden flex flex-col">
+            <!-- Canvas Container -->
+            <div id="canvasContainer" class="flex-1 overflow-auto bg-grid-pattern relative cursor-grab active:cursor-grabbing">
+                <div id="emptyMessage" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div class="text-center space-y-2 opacity-40">
+                        <svg class="w-16 h-16 mx-auto text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        <p class="text-slate-500 font-medium">Tree is empty</p>
+                        <p class="text-xs">Add numbers to begin visualization</p>
+                    </div>
+                </div>
+                
+                <svg id="treeSvg" width="100%" height="100%" class="block min-w-full min-h-full">
+                    <defs>
+                        <!-- Gradient for Nodes -->
+                        <linearGradient id="nodeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#f8fafc;stop-opacity:1" />
+                        </linearGradient>
+                        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#64748b" flood-opacity="0.1"/>
+                        </filter>
+                    </defs>
+                    <g id="connectionsLayer"></g>
+                    <g id="nodesLayer"></g>
+                </svg>
+            </div>
+        </main>
+
+    </div>
+
+    <script>
+        // --- B-Tree Data Structure ---
+
+        class BTreeNode {
+            constructor(leaf = true) {
+                this.leaf = leaf;
+                this.keys = [];
+                this.children = [];
+            }
+        }
+
+        class BTree {
+            constructor(maxKeys) {
+                this.maxKeys = maxKeys;
+                this.root = new BTreeNode(true);
+            }
+
+            insert(k) {
+                const root = this.root;
+                if (root.keys.length === this.maxKeys) {
+                    const newRoot = new BTreeNode(false);
+                    newRoot.children.push(this.root);
+                    this.splitChild(newRoot, 0);
+                    this.root = newRoot;
+                    this.insertNonFull(newRoot, k);
+                } else {
+                    this.insertNonFull(root, k);
+                }
+            }
+
+            insertNonFull(node, k) {
+                let i = node.keys.length - 1;
+                if (node.leaf) {
+                    while (i >= 0 && node.keys[i] > k) {
+                        node.keys[i + 1] = node.keys[i];
+                        i--;
+                    }
+                    node.keys[i + 1] = k;
+                } else {
+                    while (i >= 0 && node.keys[i] > k) i--;
+                    i++;
+                    if (node.children[i].keys.length === this.maxKeys) {
+                        this.splitChild(node, i);
+                        if (node.keys[i] < k) i++;
+                    }
+                    this.insertNonFull(node.children[i], k);
+                }
+            }
+
+            splitChild(parent, i) {
+                const fullChild = parent.children[i];
+                const newSibling = new BTreeNode(fullChild.leaf);
+                const medianIndex = Math.floor(fullChild.keys.length / 2);
+                const medianValue = fullChild.keys[medianIndex];
+
+                newSibling.keys = fullChild.keys.slice(medianIndex + 1);
+                fullChild.keys = fullChild.keys.slice(0, medianIndex);
+
+                if (!fullChild.leaf) {
+                    newSibling.children = fullChild.children.slice(medianIndex + 1);
+                    fullChild.children = fullChild.children.slice(0, medianIndex + 1);
+                }
+
+                parent.children.splice(i + 1, 0, newSibling);
+                parent.keys.splice(i, 0, medianValue);
+            }
+        }
+
+        // --- Visualization Engine ---
+
+        // State
+        let currentOrder = 3;
+        let bTree = new BTree(currentOrder);
+        let history = [];
+        let historyIndex = -1;
+
+        // Elements
+        const svg = document.getElementById('treeSvg');
+        const connectionsLayer = document.getElementById('connectionsLayer');
+        const nodesLayer = document.getElementById('nodesLayer');
+        const emptyMessage = document.getElementById('emptyMessage');
+        const logContainer = document.getElementById('logContainer');
+
+        // Logging
+        function log(msg, type='info') {
+            const div = document.createElement('div');
+            let color = "text-slate-300";
+            let border = "border-slate-700";
+            
+            if(type === 'action') { color = "text-indigo-300"; border = "border-indigo-500"; }
+            if(type === 'split') { color = "text-amber-300"; border = "border-amber-500"; }
+            
+            div.className = `pl-2 border-l-2 ${border} ${color}`;
+            div.innerText = msg;
+            logContainer.appendChild(div);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // History Management
+        function saveState() {
+            if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
+            history.push(JSON.parse(JSON.stringify(bTree)));
+            historyIndex++;
+            updateUI();
+        }
+
+        function loadState(index) {
+            if (index < 0 || index >= history.length) return;
+            historyIndex = index;
+            const state = history[index];
+            bTree = new BTree(state.maxKeys);
+            bTree.root = state.root;
+            drawTree();
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('stepDisplay').innerText = `Step ${historyIndex + 1}/${history.length}`;
+            document.getElementById('btnPrev').disabled = historyIndex <= 0;
+            document.getElementById('btnNext').disabled = historyIndex >= history.length - 1;
+            document.getElementById('currentOrderDisplay').innerText = currentOrder;
+        }
+
+        function changeOrder(delta) {
+            const newOrder = currentOrder + delta;
+            if(newOrder < 2 || newOrder > 10) return;
+            currentOrder = newOrder;
+            
+            bTree = new BTree(currentOrder);
+            history = [];
+            historyIndex = -1;
+            logContainer.innerHTML = '<div class="text-slate-500 italic">System ready...</div>';
+            log(`Max Keys changed to ${currentOrder}. Tree reset.`);
+            
+            saveState();
+            drawTree();
+        }
+
+        // --- Drawing Logic ---
+
+        // Config
+        const CONFIG = {
+            nodeHeight: 40,
+            keyWidth: 34,
+            nodePadding: 10,
+            levelGap: 80,
+            siblingGap: 20
+        };
+
+        function measureTree(node) {
+            if (!node) return { width: 0 };
+            
+            const myWidth = (node.keys.length * CONFIG.keyWidth) + (CONFIG.nodePadding * 2);
+            
+            if (node.leaf) {
+                return { width: myWidth, myWidth, childrenWidth: 0, childMetrics: [] };
+            }
+            
+            let childrenWidth = 0;
+            const childMetrics = [];
+            
+            node.children.forEach(child => {
+                const m = measureTree(child);
+                childMetrics.push(m);
+                childrenWidth += m.width + CONFIG.siblingGap;
+            });
+            childrenWidth -= CONFIG.siblingGap; // remove last gap
+            
+            return {
+                width: Math.max(myWidth, childrenWidth),
+                myWidth,
+                childrenWidth,
+                childMetrics
+            };
+        }
+
+        function drawNode(node, x, y, metrics, parentPortX, parentPortY) {
+            if (!node) return;
+
+            // 1. Draw Edges (Curved Bézier)
+            if (parentPortX !== null) {
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                
+                // Control points for smooth curve
+                const cp1x = parentPortX;
+                const cp1y = parentPortY + (CONFIG.levelGap * 0.5);
+                const cp2x = x;
+                const cp2y = y - (CONFIG.levelGap * 0.5);
+                
+                const d = `M ${parentPortX} ${parentPortY} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x} ${y}`;
+                
+                path.setAttribute("d", d);
+                path.setAttribute("fill", "none");
+                path.setAttribute("stroke", "#94a3b8");
+                path.setAttribute("stroke-width", "2");
+                connectionsLayer.appendChild(path);
+            }
+
+            // 2. Draw Node Container
+            const nodeWidth = metrics.myWidth;
+            const startX = x - (nodeWidth / 2);
+            
+            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            
+            // Background Rect
+            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute("x", startX);
+            rect.setAttribute("y", y);
+            rect.setAttribute("width", nodeWidth);
+            rect.setAttribute("height", CONFIG.nodeHeight);
+            rect.setAttribute("rx", "6");
+            rect.setAttribute("fill", "url(#nodeGradient)");
+            rect.setAttribute("stroke", "#475569");
+            rect.setAttribute("stroke-width", "1.5");
+            rect.setAttribute("filter", "url(#shadow)");
+            g.appendChild(rect);
+
+            // Draw Keys & Dividers
+            node.keys.forEach((key, idx) => {
+                const keyX = startX + CONFIG.nodePadding + (idx * CONFIG.keyWidth);
+                
+                // Text
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", keyX + (CONFIG.keyWidth / 2));
+                text.setAttribute("y", y + 25);
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("font-size", "14");
+                text.setAttribute("font-weight", "bold");
+                text.setAttribute("fill", "#1e293b");
+                text.textContent = key;
+                g.appendChild(text);
+
+                // Divider (if not last)
+                if (idx < node.keys.length - 1) {
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", keyX + CONFIG.keyWidth);
+                    line.setAttribute("y1", y);
+                    line.setAttribute("x2", keyX + CONFIG.keyWidth);
+                    line.setAttribute("y2", y + CONFIG.nodeHeight);
+                    line.setAttribute("stroke", "#cbd5e1");
+                    g.appendChild(line);
+                }
+            });
+            
+            nodesLayer.appendChild(g);
+
+            // 3. Recurse for Children
+            if (!node.leaf) {
+                // Determine starting X for children block to center it under this node
+                let currentChildX = x - (metrics.childrenWidth / 2);
+                
+                node.children.forEach((child, idx) => {
+                    const childMetric = metrics.childMetrics[idx];
+                    const childCenterX = currentChildX + (childMetric.width / 2);
+                    
+                    // Calculate "Port" position on parent node
+                    // Ports are between keys. 
+                    // Port 0 is before Key 0. Port 1 is between K0 and K1. Port N is after Kn.
+                    // X pos = startX + padding + (idx * keyWidth)
+                    // Note: idx matches exactly because children count = keys + 1.
+                    const portX = startX + CONFIG.nodePadding + (idx * CONFIG.keyWidth);
+                    
+                    // Draw Port Dot
+                    const port = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    port.setAttribute("cx", portX);
+                    port.setAttribute("cy", y + CONFIG.nodeHeight);
+                    port.setAttribute("r", "3");
+                    port.setAttribute("fill", "#6366f1"); // Indigo dot
+                    nodesLayer.appendChild(port);
+
+                    drawNode(child, childCenterX, y + CONFIG.levelGap, childMetric, portX, y + CONFIG.nodeHeight);
+                    
+                    currentChildX += childMetric.width + CONFIG.siblingGap;
+                });
+                
+                // Draw last port (after last key)
+                // Actually the loop above handles ports 0 to N-1.
+                // Wait, if 1 key, 2 children. Loop runs twice.
+                // Child 0 uses Port 0 (Start + 0). 
+                // Child 1 uses Port 1 (Start + 1*Width). Correct.
+                // Wait, loop runs for children. If 1 key, 2 children.
+                // idx=0: PortX = Start + 10 + 0 = Left Edge of Key 0. Correct.
+                // idx=1: PortX = Start + 10 + 34 = Right Edge of Key 0. Correct.
+            }
+        }
+
+        function drawTree() {
+            nodesLayer.innerHTML = '';
+            connectionsLayer.innerHTML = '';
+            
+            if (!bTree.root || bTree.root.keys.length === 0) {
+                emptyMessage.style.display = 'flex';
+                return;
+            }
+            emptyMessage.style.display = 'none';
+
+            const metrics = measureTree(bTree.root);
+            
+            // Adjust SVG size
+            const width = Math.max(document.getElementById('canvasContainer').clientWidth, metrics.width + 100);
+            const height = Math.max(600, 200); // Dynamic height could be added
+            
+            svg.setAttribute("width", width);
+            svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+            
+            drawNode(bTree.root, width / 2, 40, metrics, null, null);
+        }
+
+        // --- Event Listeners ---
+
+        document.getElementById('insertForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('numberInput');
+            const val = parseInt(input.value);
+            if (isNaN(val)) return;
+
+            log(`Insert ${val}`, 'action');
+            bTree.insert(val);
+            saveState();
+            drawTree();
+            input.value = '';
+            input.focus();
+        });
+
+        document.getElementById('btnReset').addEventListener('click', () => {
+            bTree = new BTree(currentOrder);
+            history = [];
+            historyIndex = -1;
+            logContainer.innerHTML = '<div class="text-slate-500 italic">System ready...</div>';
+            log('Tree reset');
+            saveState();
+            drawTree();
+        });
+
+        document.getElementById('btnLoadExample').addEventListener('click', () => {
+            bTree = new BTree(currentOrder);
+            history = [];
+            historyIndex = -1;
+            logContainer.innerHTML = '';
+            
+            log('Loading demo sequence...');
+            const seq = [10, 20, 5, 6, 12, 30, 7, 17];
+            // Add more based on order to ensure splits
+            const limit = currentOrder * 4;
+            for(let i=1; i<=limit; i++) seq.push(i*10 + 3);
+            
+            seq.forEach(n => {
+                bTree.insert(n);
+                saveState();
+            });
+            drawTree();
+        });
+
+        document.getElementById('btnPrev').addEventListener('click', () => loadState(historyIndex - 1));
+        document.getElementById('btnNext').addEventListener('click', () => loadState(historyIndex + 1));
+
+        // Init
+        saveState();
+
+    </script>
+</body>
+</html>
