@@ -92,6 +92,7 @@ bool Check(string infix){
 int main() {
 	string infix = "(A+B/C)+{12+34}-[2+0";
 	bool CheckBalance = Check(infix);
+	cout<<"For "<<infix<<endl;
 	if(CheckBalance == true){
 		cout<<"Your Equation is ok"<<endl;
 	}else{

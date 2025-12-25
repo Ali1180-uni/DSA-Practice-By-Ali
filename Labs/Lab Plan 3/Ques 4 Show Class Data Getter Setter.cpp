@@ -15,7 +15,7 @@ class Person{
 	void setage(int a){
 		while(1){
 			if(a < 0 || a > 130){
-				cout<<"Please Enter age b/w 1 to 130"<<endl;
+				cout<<"Please Enter age b/w 1 to 13"<<endl;
 				cin>>a;
 			}else{
 				age = a;

@@ -48,7 +48,7 @@ class BST {
 				if(num>curr->data){
 					curr = curr->right;
 				}else{
-					curr = curr->right;
+					curr = curr->left;
 				}
 			}
 			if(curr == nullptr){
@@ -73,13 +73,16 @@ int main() {
 	tree1.insert(16);
 	tree1.insert(20);
 	tree1.insert(18);
-	bool check = tree1.Search(20);
-	if(check == true){
-		cout<<"\nFound"<<endl;
-	}else{
-		cout<<"\nNot Found"<<endl;
-	}
 	cout<<"\n--------In Order--------\n";
 	tree1.inorder(tree1.root);
+	int n;
+	cout<<"\nEnter Number to Search"<<endl;
+	cin>>n;
+	bool check = tree1.Search(n);
+	if(check == true){
+		cout<<n<<" Found"<<endl;
+	}else{
+		cout<<n<<" Not Found"<<endl;
+	}
 
 }

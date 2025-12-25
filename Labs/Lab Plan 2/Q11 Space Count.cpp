@@ -15,5 +15,5 @@ int main(){
 			countSpace += 1;
 		}
 	}
-	cout<<"The Total Space are: "<<countSpace+1<<endl;
+	cout<<"The Total Space are: "<<countSpace<<endl;
 }
