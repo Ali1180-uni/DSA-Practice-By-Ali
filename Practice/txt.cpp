@@ -115,6 +115,22 @@ public:
         if (!found) statusMessage = RED + " >> '" + query + "' not found." + RESET;
     }
 
+    void editLine(int lineNum) {
+        if (lineNum > 0 && lineNum <= content.size()) {
+            // Display prompt directly
+            cout << YELLOW << " >> Editing Line " << lineNum << ": " << RESET << content[lineNum - 1] << endl;
+            cout << " >> New Text: ";
+            string newLine;
+            getline(cin, newLine);
+            
+            saveState();
+            content[lineNum - 1] = newLine;
+            statusMessage = GREEN + " >> Success: Line " + to_string(lineNum) + " updated." + RESET;
+        } else {
+            statusMessage = RED + " >> Error: Line " + to_string(lineNum) + " does not exist." + RESET;
+        }
+    }
+
     // --- Display & Run ---
 
     void display() {
@@ -136,6 +152,7 @@ public:
         // Highlighted Menu
         cout << YELLOW << " CMDs: " << RESET 
              << ":undo  :redo  :find " << CYAN << "[txt]" << RESET 
+             << "  :edit " << CYAN << "[num]" << RESET 
              << "  :save " << CYAN << "[name]" << RESET 
              << "  :load " << CYAN << "[name]" << RESET 
              << "  :exit" << endl;
@@ -176,6 +193,17 @@ public:
             } else if (input.find(":find") == 0) {
                  if (input.length() > 6) {
                     findText(input.substr(6));
+                }
+            } else if (input.find(":edit") == 0) {
+                 if (input.length() > 6) {
+                    try {
+                        int num = stoi(input.substr(6));
+                        editLine(num);
+                    } catch (...) {
+                         statusMessage = RED + " >> Error: Invalid line number." + RESET;
+                    }
+                } else {
+                    statusMessage = RED + " >> Usage: :edit [line_number]" + RESET;
                 }
             } else {
                 // Normal text input
