@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastering Shortest Paths: Dijkstra & Bellman-Ford</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --node-default: #cbd5e1;
+            --node-visiting: #facc15; /* Yellow */
+            --node-visited: #4ade80; /* Green */
+            --node-start: #22c55e;
+            --node-end: #ef4444;
+            --edge-default: #475569;
+            --edge-active: #facc15;
+            --highlight: #facc15;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            padding: 1rem 2rem;
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        h1 { font-size: 1.25rem; font-weight: 700; color: var(--text-main); }
+        .badge { font-size: 0.8rem; background: #334155; padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--accent); margin-left: 10px;}
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        select, button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid #475569;
+            background-color: #334155;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        button:hover { background-color: #475569; }
+        button.primary { background-color: var(--accent); border-color: var(--accent); }
+        button.primary:hover { background-color: var(--accent-hover); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Main Layout */
+        main {
+            flex: 1;
+            display: flex;
+            position: relative;
+        }
+
+        /* Canvas Area */
+        #canvas-container {
+            flex: 3;
+            position: relative;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            overflow: hidden;
+            cursor: crosshair;
+        }
+        
+        canvas { 
+            display: block; 
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%; 
+            height: 100%; 
+        }
+
+        .instruction-overlay {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.8);
+            padding: 8px 16px;
+            border-radius: 20px;
+            pointer-events: none;
+            border: 1px solid #334155;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            transition: opacity 0.3s;
+        }
+
+        /* Sidebar / Status Panel */
+        aside {
+            flex: 1;
+            min-width: 300px;
+            max-width: 400px;
+            background-color: var(--panel-bg);
+            border-left: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            gap: 1rem;
+            overflow-y: auto;
+        }
+
+        .panel-section {
+            background: #0f172a;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #334155;
+        }
+
+        .panel-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        /* Distance Table */
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { padding: 6px; text-align: left; border-bottom: 1px solid #334155; }
+        th { color: var(--text-muted); font-weight: normal; }
+        tr.highlight-row { background-color: rgba(59, 130, 246, 0.2); }
+        
+        /* Logs */
+        #log-container {
+            flex: 1;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .log-entry { padding: 4px 0; border-bottom: 1px solid #334155; opacity: 0.8; }
+        .log-entry:last-child { opacity: 1; font-weight: bold; color: var(--accent); border: none; }
+        .log-entry span { font-weight: bold; }
+
+        /* Playback Controls Footer */
+        .playback-controls {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: auto;
+            padding-top: 1rem;
+        }
+
+        /* Special style for Prev button to distinguish it */
+        #btn-prev {
+            border-color: #64748b;
+        }
+
+        @media (max-width: 768px) {
+            main { flex-direction: column; }
+            aside { max-width: 100%; height: 40vh; border-left: none; border-top: 1px solid #334155; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div style="display:flex; align-items:center;">
+        <h1>Graph Algo Visualizer</h1>
+        <span class="badge" id="mode-badge">Directed</span>
+    </div>
+    <div class="controls">
+        <select id="algo-select">
+            <option value="dijkstra">Dijkstra's Algorithm</option>
+            <option value="bellman">Bellman-Ford Algorithm</option>
+        </select>
+        <select id="graph-type">
+            <option value="directed">Directed Graph</option>
+            <option value="undirected">Undirected Graph</option>
+        </select>
+        <button onclick="app.generateGraph()">🎲 New Graph</button>
+        <button onclick="app.reset()">↺ Reset</button>
+    </div>
+</header>
+
+<main>
+    <div id="canvas-container">
+        <canvas id="graphCanvas"></canvas>
+        <div class="instruction-overlay" id="instruction">Click a node to set START</div>
+    </div>
+
+    <aside>
+        <div class="panel-section">
+            <div class="panel-title">Algorithm Status</div>
+            <div id="status-text" style="font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--accent);">
+                Ready
+            </div>
+            <div class="playback-controls">
+                <button id="btn-prev" onclick="app.prevStep()" disabled>← Prev</button>
+                <button id="btn-start" class="primary" onclick="app.startAlgorithm()">▶ Start</button>
+                <button id="btn-next" onclick="app.nextStep()" disabled>Next →</button>
+                <button id="btn-auto" onclick="app.toggleAutoPlay()" disabled>Auto Play</button>
+            </div>
+        </div>
+
+        <div class="panel-section" style="flex: 1; display: flex; flex-direction: column;">
+            <div class="panel-title">Distance Table</div>
+            <div style="overflow-y: auto; max-height: 200px;">
+                <table id="dist-table">
+                    <thead>
+                        <tr><th>Node</th><th>Dist</th><th>Path</th></tr>
+                    </thead>
+                    <tbody><!-- Populated by JS --></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel-section" style="flex: 1; display: flex; flex-direction: column;">
+            <div class="panel-title">Execution Log</div>
+            <div id="log-container"></div>
+        </div>
+    </aside>
+</main>
+
+<script>
+/**
+ * Core Application Logic
+ * Encapsulated to avoid global scope pollution
+ */
+class GraphVisualizer {
+    constructor() {
+        this.canvas = document.getElementById('graphCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.container = document.getElementById('canvas-container');
+        this.nodes = [];
+        this.edges = [];
+        this.radius = 20;
+        this.isDirected = true;
+        
+        // Interaction State
+        this.startNode = null;
+        this.endNode = null;
+        
+        // Algorithm Playback State
+        this.steps = []; // Stores the "timeline" of the algorithm
+        this.currentStepIndex = -1;
+        this.isAutoPlaying = false;
+        this.autoPlayInterval = null;
+        
+        // Current Visual State (updated by timeline)
+        this.distances = {};
+        this.parents = {};
+        this.visited = new Set();
+        this.processingNode = null;
+        this.processingEdge = null;
+        this.pathFound = false;
+
+        this.init();
+    }
+
+    init() {
+        const resizeObserver = new ResizeObserver(() => this.resizeCanvas());
+        resizeObserver.observe(this.container);
+
+        this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
+        
+        document.getElementById('algo-select').addEventListener('change', () => this.reset(true));
+        document.getElementById('graph-type').addEventListener('change', (e) => {
+            this.isDirected = e.target.value === 'directed';
+            document.getElementById('mode-badge').innerText = this.isDirected ? "Directed" : "Undirected";
+            this.generateGraph();
+        });
+
+        this.generateGraph();
+        this.loop();
+    }
+
+    resizeCanvas() {
+        const rect = this.container.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        this.canvas.width = rect.width * dpr;
+        this.canvas.height = rect.height * dpr;
+        this.ctx.scale(dpr, dpr);
+        this.draw();
+    }
+
+    // --- Graph Generation ---
+    generateGraph() {
+        this.reset(true);
+        this.nodes = [];
+        this.edges = [];
+        
+        const nodeCount = 6;
+        const width = this.container.clientWidth;
+        const height = this.container.clientHeight;
+
+        for(let i=0; i<nodeCount; i++) {
+            const angle = (i / nodeCount) * Math.PI * 2;
+            const r = Math.min(width, height) / 3.5;
+            const noiseX = (Math.random() - 0.5) * 50;
+            const noiseY = (Math.random() - 0.5) * 50;
+
+            this.nodes.push({
+                id: String.fromCharCode(65 + i),
+                x: width/2 + Math.cos(angle) * r + noiseX,
+                y: height/2 + Math.sin(angle) * r + noiseY
+            });
+        }
+
+        for(let i=0; i<nodeCount; i++) {
+            const next = (i + 1) % nodeCount;
+            this.addEdge(i, next);
+            if(Math.random() > 0.3) {
+                const target = (i + 2) % nodeCount;
+                if(target !== i) this.addEdge(i, target);
+            }
+             if(Math.random() > 0.6) {
+                const target = (i + 3) % nodeCount;
+                if(target !== i) this.addEdge(i, target);
+            }
+        }
+        
+        this.updateTable();
+        this.log("New graph generated. Select a START node.");
+        this.updateInstruction("Click a node to set START");
+    }
+
+    addEdge(uIndex, vIndex) {
+        const u = this.nodes[uIndex];
+        const v = this.nodes[vIndex];
+        const weight = Math.floor(Math.random() * 9) + 1;
+        const exists = this.edges.some(e => 
+            (e.u === u && e.v === v) || 
+            (!this.isDirected && e.u === v && e.v === u)
+        );
+
+        if(!exists) {
+            this.edges.push({ u, v, weight });
+        }
+    }
+
+    // --- Interaction ---
+    handleCanvasClick(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const clickedNode = this.nodes.find(node => {
+            const dx = node.x - x;
+            const dy = node.y - y;
+            return Math.sqrt(dx*dx + dy*dy) < this.radius + 5;
+        });
+
+        if (clickedNode) {
+            if (!this.startNode) {
+                this.startNode = clickedNode;
+                this.updateInstruction("Great! Now click a node to set END (Target)");
+                this.log(`Start node set to ${clickedNode.id}`);
+            } else if (!this.endNode && clickedNode !== this.startNode) {
+                this.endNode = clickedNode;
+                this.updateInstruction("Ready to run algorithm! Click 'Start'.");
+                this.log(`End node set to ${clickedNode.id}`);
+                document.getElementById('btn-start').disabled = false;
+            } else if(this.startNode && this.endNode) {
+                if(this.steps.length === 0) {
+                    if(clickedNode === this.startNode) { this.startNode = null; this.endNode = null; }
+                    else { this.startNode = clickedNode; this.endNode = null; }
+                    this.updateInstruction("Resetting points... Pick Start.");
+                }
+            }
+            this.draw();
+        }
+    }
+
+    // --- Drawing ---
+    draw() {
+        const width = this.container.clientWidth;
+        const height = this.container.clientHeight;
+        this.ctx.clearRect(0, 0, width, height);
+
+        this.edges.forEach(edge => this.drawEdge(edge));
+        this.nodes.forEach(node => this.drawNode(node));
+    }
+
+    drawNode(node) {
+        const { x, y, id } = node;
+        let color = '#cbd5e1'; 
+        let ringColor = null;
+
+        if (node === this.startNode) color = '#22c55e';
+        else if (node === this.endNode) color = '#ef4444';
+        else if (this.visited.has(node.id)) color = '#4ade80';
+        
+        if (this.processingNode && this.processingNode.id === node.id) {
+            color = '#facc15';
+            ringColor = 'white';
+        }
+
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, this.radius, 0, Math.PI * 2);
+        this.ctx.fillStyle = color;
+        this.ctx.fill();
+        
+        if (ringColor) {
+            this.ctx.lineWidth = 3;
+            this.ctx.strokeStyle = ringColor;
+            this.ctx.stroke();
+        } else {
+            this.ctx.lineWidth = 1;
+            this.ctx.strokeStyle = '#334155';
+            this.ctx.stroke();
+        }
+
+        this.ctx.fillStyle = '#0f172a';
+        this.ctx.font = 'bold 14px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(id, x, y);
+
+        if(this.distances[id] !== undefined) {
+            this.ctx.fillStyle = '#f8fafc';
+            this.ctx.font = '12px Arial';
+            const dist = this.distances[id] === Infinity ? '∞' : this.distances[id];
+            this.ctx.fillText(`d: ${dist}`, x, y - 30);
+        }
+    }
+
+    drawEdge(edge) {
+        const { u, v, weight } = edge;
+        let color = '#475569';
+        let width = 2;
+
+        if (this.processingEdge && 
+           ((this.processingEdge.u === u && this.processingEdge.v === v) || 
+            (!this.isDirected && this.processingEdge.u === v && this.processingEdge.v === u))) {
+            color = '#facc15';
+            width = 4;
+        } 
+        else if(this.pathFound && this.isInFinalPath(u, v)) {
+            color = '#3b82f6';
+            width = 4;
+        }
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(u.x, u.y);
+        this.ctx.lineTo(v.x, v.y);
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = width;
+        this.ctx.stroke();
+
+        // High Visibility Arrow
+        if(this.isDirected) {
+            const angle = Math.atan2(v.y - u.y, v.x - u.x);
+            const headLen = 15; 
+            const targetX = v.x - Math.cos(angle) * this.radius;
+            const targetY = v.y - Math.sin(angle) * this.radius;
+            
+            this.ctx.beginPath();
+            this.ctx.moveTo(targetX, targetY);
+            this.ctx.lineTo(targetX - headLen * Math.cos(angle - Math.PI/5), targetY - headLen * Math.sin(angle - Math.PI/5));
+            this.ctx.lineTo(targetX - headLen * Math.cos(angle + Math.PI/5), targetY - headLen * Math.sin(angle + Math.PI/5));
+            this.ctx.closePath();
+            this.ctx.fillStyle = color;
+            this.ctx.fill();
+        }
+
+        const midX = (u.x + v.x) / 2;
+        const midY = (u.y + v.y) / 2;
+        this.ctx.beginPath();
+        this.ctx.arc(midX, midY, 10, 0, Math.PI*2);
+        this.ctx.fillStyle = '#1e293b';
+        this.ctx.fill();
+
+        this.ctx.fillStyle = '#94a3b8';
+        this.ctx.font = '12px Arial';
+        this.ctx.fillText(weight, midX, midY);
+    }
+
+    isInFinalPath(u, v) {
+        let curr = this.endNode.id;
+        while(this.parents[curr]) {
+            const p = this.parents[curr];
+            if(this.isDirected) {
+                if(u.id === p && v.id === curr) return true;
+            } else {
+                if((u.id === p && v.id === curr) || (u.id === curr && v.id === p)) return true;
+            }
+            curr = p;
+        }
+        return false;
+    }
+
+    loop() {
+        this.draw();
+        requestAnimationFrame(() => this.loop());
+    }
+
+    // --- ALGORITHM ENGINE (Record & Replay) ---
+
+    startAlgorithm() {
+        if(!this.startNode || !this.endNode) return;
+        
+        const algoType = document.getElementById('algo-select').value;
+        
+        // Reset Simulation State
+        this.steps = [];
+        this.distances = {};
+        this.nodes.forEach(n => this.distances[n.id] = Infinity);
+        this.distances[this.startNode.id] = 0;
+        this.parents = {};
+        this.visited = new Set();
+        this.processingNode = null;
+        this.processingEdge = null;
+        this.pathFound = false;
+
+        // Run Logic to generate Timeline
+        if(algoType === 'dijkstra') {
+            this.runDijkstraLogic();
+        } else {
+            this.runBellmanFordLogic();
+        }
+
+        // Setup UI
+        this.currentStepIndex = 0;
+        this.renderState(0);
+        
+        document.getElementById('btn-start').disabled = true;
+        document.getElementById('algo-select').disabled = true;
+        document.getElementById('graph-type').disabled = true;
+        document.getElementById('btn-auto').disabled = false;
+        this.updateButtons();
+    }
+
+    saveStep(logMsg, statusText, statusColor) {
+        // Deep copy state for timeline
+        this.steps.push({
+            distances: {...this.distances},
+            parents: {...this.parents},
+            visited: new Set(this.visited),
+            processingNode: this.processingNode,
+            processingEdge: this.processingEdge,
+            log: logMsg,
+            pathFound: this.pathFound,
+            statusText: statusText || "Running",
+            statusColor: statusColor || "#facc15"
+        });
+    }
+
+    runDijkstraLogic() {
+        // Step 0: Initial state
+        this.saveStep(`Starting Dijkstra from ${this.startNode.id}`);
+        
+        let unvisited = [...this.nodes];
+        
+        while(unvisited.length > 0) {
+            unvisited.sort((a, b) => this.distances[a.id] - this.distances[b.id]);
+            const current = unvisited[0];
+            
+            if(this.distances[current.id] === Infinity) {
+                this.saveStep("Remaining nodes are unreachable.", "Unreachable", "red");
+                break;
+            }
+
+            unvisited.shift();
+            this.visited.add(current.id);
+            this.processingNode = current;
+            this.processingEdge = null;
+            
+            this.saveStep(`Processing Node ${current.id} (Min Dist: ${this.distances[current.id]})`);
+
+            if(current === this.endNode) {
+                this.pathFound = true;
+                this.saveStep(`Target ${current.id} reached!`, "Finished", "#4ade80");
+                return;
+            }
+
+            const neighbors = this.edges.filter(e => 
+                (e.u === current) || (!this.isDirected && e.v === current)
+            );
+
+            for(let edge of neighbors) {
+                const neighbor = edge.u === current ? edge.v : edge.u;
+                if(this.visited.has(neighbor.id)) continue;
+
+                this.processingEdge = edge;
+                this.saveStep(`Checking edge ${current.id}-${neighbor.id}`);
+
+                const newDist = this.distances[current.id] + edge.weight;
+                if(newDist < this.distances[neighbor.id]) {
+                    this.distances[neighbor.id] = newDist;
+                    this.parents[neighbor.id] = current.id;
+                    this.saveStep(`Updated ${neighbor.id} distance to ${newDist}`);
+                }
+            }
+        }
+    }
+
+    runBellmanFordLogic() {
+        const V = this.nodes.length;
+        this.saveStep(`Starting Bellman-Ford (${V-1} Iterations)`);
+
+        for(let i=1; i < V; i++) {
+            let changed = false;
+            
+            for(let edge of this.edges) {
+                const directions = this.isDirected ? [{u: edge.u, v: edge.v}] : [{u: edge.u, v: edge.v}, {u: edge.v, v: edge.u}];
+
+                for(let dir of directions) {
+                    const u = dir.u;
+                    const v = dir.v;
+                    
+                    this.processingEdge = edge;
+                    this.processingNode = u;
+                    
+                    // Don't log every single check to keep timeline clean, only relaxations or start of loop
+                    if(this.distances[u.id] !== Infinity) {
+                        const newDist = this.distances[u.id] + edge.weight;
+                        if(newDist < this.distances[v.id]) {
+                            this.distances[v.id] = newDist;
+                            this.parents[v.id] = u.id;
+                            changed = true;
+                            this.saveStep(`Iter ${i}: Relaxed ${u.id}->${v.id} to ${newDist}`, `Iteration ${i}`);
+                        }
+                    }
+                }
+            }
+            if(!changed) {
+                this.processingEdge = null;
+                this.processingNode = null;
+                this.saveStep("No changes in iteration. Converged.", "Converged", "#4ade80");
+                break;
+            }
+        }
+        
+        if(this.distances[this.endNode.id] !== Infinity) {
+            this.pathFound = true;
+            this.saveStep(`Finished. Shortest path: ${this.distances[this.endNode.id]}`, "Finished", "#4ade80");
+        } else {
+            this.saveStep("Target is unreachable", "Unreachable", "red");
+        }
+    }
+
+    // --- Timeline Playback ---
+
+    renderState(index) {
+        if(index < 0 || index >= this.steps.length) return;
+
+        const state = this.steps[index];
+        
+        // Restore State
+        this.distances = state.distances;
+        this.parents = state.parents;
+        this.visited = state.visited;
+        this.processingNode = state.processingNode;
+        this.processingEdge = state.processingEdge;
+        this.pathFound = state.pathFound;
+        
+        // Update UI
+        document.getElementById('status-text').innerText = state.statusText;
+        document.getElementById('status-text').style.color = state.statusColor;
+        this.updateTable();
+        this.draw();
+
+        // Rebuild Logs up to this point
+        const logContainer = document.getElementById('log-container');
+        logContainer.innerHTML = '';
+        // Show last 5 logs for context, or all? Let's show all up to current to simulate history
+        for(let i=0; i<=index; i++) {
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            div.innerHTML = `> ${this.steps[i].log}`;
+            logContainer.appendChild(div);
+        }
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    nextStep() {
+        if(this.currentStepIndex < this.steps.length - 1) {
+            this.currentStepIndex++;
+            this.renderState(this.currentStepIndex);
+            this.updateButtons();
+        } else {
+            this.stopAutoPlay();
+        }
+    }
+
+    prevStep() {
+        this.stopAutoPlay(); // Stop auto if user intervenes
+        if(this.currentStepIndex > 0) {
+            this.currentStepIndex--;
+            this.renderState(this.currentStepIndex);
+            this.updateButtons();
+        }
+    }
+
+    updateButtons() {
+        const hasNext = this.currentStepIndex < this.steps.length - 1;
+        const hasPrev = this.currentStepIndex > 0;
+        
+        document.getElementById('btn-next').disabled = !hasNext;
+        document.getElementById('btn-prev').disabled = !hasPrev;
+        
+        if(!hasNext) {
+            this.stopAutoPlay();
+            document.getElementById('btn-auto').disabled = true;
+        }
+    }
+
+    toggleAutoPlay() {
+        if(this.isAutoPlaying) {
+            this.stopAutoPlay();
+        } else {
+            this.isAutoPlaying = true;
+            document.getElementById('btn-auto').innerText = "Pause";
+            this.autoPlayInterval = setInterval(() => this.nextStep(), 1000);
+        }
+    }
+
+    stopAutoPlay() {
+        clearInterval(this.autoPlayInterval);
+        this.isAutoPlaying = false;
+        document.getElementById('btn-auto').innerText = "Auto Play";
+    }
+
+    // --- Helpers ---
+    reset(full = false) {
+        this.stopAutoPlay();
+        this.steps = [];
+        this.currentStepIndex = -1;
+        
+        this.distances = {};
+        this.parents = {};
+        this.visited = new Set();
+        this.processingNode = null;
+        this.processingEdge = null;
+        this.pathFound = false;
+        
+        if(full) {
+            this.startNode = null;
+            this.endNode = null;
+            this.updateInstruction("Click a node to set START");
+            this.log("Reset complete. Set start/end nodes.");
+        } else {
+            this.log("Algorithm state reset. Ready to restart.");
+            this.updateInstruction("Ready. Click 'Start'.");
+        }
+
+        document.getElementById('btn-start').disabled = !this.startNode || !this.endNode;
+        document.getElementById('btn-next').disabled = true;
+        document.getElementById('btn-prev').disabled = true;
+        document.getElementById('btn-auto').disabled = true;
+        document.getElementById('algo-select').disabled = false;
+        document.getElementById('graph-type').disabled = false;
+        
+        this.updateTable();
+        this.draw();
+    }
+
+    log(msg) {
+        // Only used for initial setup logs, algorithm logs are handled by renderState
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        div.innerHTML = `> ${msg}`;
+        const container = document.getElementById('log-container');
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    updateInstruction(msg) {
+        document.getElementById('instruction').innerText = msg;
+    }
+
+    updateTable() {
+        const tbody = document.querySelector('#dist-table tbody');
+        tbody.innerHTML = '';
+        const sortedNodes = [...this.nodes].sort((a,b) => a.id.localeCompare(b.id));
+
+        sortedNodes.forEach(node => {
+            const tr = document.createElement('tr');
+            const dist = this.distances[node.id];
+            const displayDist = dist === undefined ? '-' : (dist === Infinity ? '∞' : dist);
+            const parent = this.parents[node.id] || '-';
+            
+            if(this.processingNode && this.processingNode.id === node.id) tr.classList.add('highlight-row');
+
+            tr.innerHTML = `<td><b>${node.id}</b></td><td>${displayDist}</td><td>${parent}</td>`;
+            tbody.appendChild(tr);
+        });
+    }
+}
+
+const app = new GraphVisualizer();
+</script>
+</body>
+</html>
